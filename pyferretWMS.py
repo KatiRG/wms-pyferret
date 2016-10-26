@@ -105,27 +105,28 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 	# Start pyferret	
         pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
 
-	master_pid = os.getpid()
-	print('---------> gunicorn master pid: ', master_pid)
+    	master_pid = os.getpid()
+    	print('---------> gunicorn master pid: ', master_pid)
 
-	if not serverOnly:		# nw will be launched 
-		listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+    	if not serverOnly:		# nw will be launched 
+    		listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
-		instance_WMS_Client = Template(template_WMS_client())
-		instance_NW_Package = Template(template_nw_package())
+    		instance_WMS_Client = Template(template_WMS_client())
+    		instance_NW_Package = Template(template_nw_package())
 
-		with open(tmpdir + '/index.html', 'wb') as f:
-    			f.write(instance_WMS_Client.render(cmdArray=cmdArray, gunicornPID=master_pid, 
-							   listSynchroMapsToSet=listSynchroMapsToSet,
-							   mapWidth=mapWidth, mapHeight=mapHeight, 
-							   mapCenter=mapCenter, mapZoom=mapZoom))
-		with open(tmpdir + '/package.json', 'wb') as f:
-    			f.write(instance_NW_Package.render(nbMaps=nbMaps,
-							   mapWidth=mapWidth, mapHeight=mapHeight))
+    		with open(tmpdir + '/index.html', 'wb') as f:
+        			f.write(instance_WMS_Client.render(cmdArray=cmdArray, gunicornPID=master_pid, 
+    							   listSynchroMapsToSet=listSynchroMapsToSet,
+    							   mapWidth=mapWidth, mapHeight=mapHeight, 
+    							   mapCenter=mapCenter, mapZoom=mapZoom))
+    		with open(tmpdir + '/package.json', 'wb') as f:
+        			f.write(instance_NW_Package.render(nbMaps=nbMaps,
+    							   mapWidth=mapWidth, mapHeight=mapHeight))
 
-		# Launch NW.js
-    		proc = subprocess.Popen(['nw', tmpdir])
-    		print('Client nw process: ', proc.pid)
+    		# Launch NW.js
+        	proc = subprocess.Popen(['nw', tmpdir], shell=True)
+            # proc = subprocess.Popen(['nw', tmpdir])
+        	print('Client nw process: ', proc.pid)
 
         self.options = options or {}
         self.application = app
@@ -160,14 +161,14 @@ def template_WMS_client():
     <meta charset='utf-8'>
     <title>Slippy maps with WMS from pyferret</title>
 
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
 
-    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
 
-    <script src='https://unpkg.com/leaflet.sync@0.0.5'></script>
+    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
 
     <style type='text/css'>
         html, body { font-family: 'arial' }
@@ -278,7 +279,7 @@ def template_nw_package():
 from optparse import OptionParser
 
 #------------------------------------------------------
-usage = "%prog [--env=script.jnl] [--width=400] [--height=400] [--center=[0,0]] [--zoom=1] [--server]" + \
+usage = "%prog [--env=script.jnl] [--width=400] [--height=400] [--size=value] [--center=[0,0]] [--zoom=1] [--server]" + \
 	"\n                              'cmd/qualifiers variable; cmd/qualifiers variable'" + \
 	"\n\n'cmd/qualifiers variable' is a classic ferret call (no space allowed except to" + \
 	"\nseparate the variable from the command and its qualifiers). The semi-colon character ';'" +\
@@ -297,6 +298,8 @@ parser.add_option("--width", type="int", dest="width", default=400,
 		help="200 < map width <= 600")
 parser.add_option("--height", type="int", dest="height", default=400,
 		help="200 < map height <= 600")
+parser.add_option("--size", type="int", dest="size",
+		help="200 < map height and width <= 600")
 parser.add_option("--env", dest="envScript", default="pyferretWMS.jnl",
 		help="ferret script to set the environment (default=pyferretWMS.jnl). It contains datasets to open, variables definition.")
 parser.add_option("--center", type="string", dest="center", default='[0,-40]',
@@ -308,8 +311,13 @@ parser.add_option("--server", dest="serverOnly", action="store_true", default=Fa
 
 (options, args) = parser.parse_args()
 
-mapWidth =  options.width
-mapHeight = options.height
+if options.size:
+	mapHeight = options.size
+	mapWidth = options.size
+else:
+	mapHeight = options.height
+	mapWidth = options.width
+
 mapCenter = options.center
 mapZoom = options.zoom
 envScript = options.envScript
@@ -334,8 +342,8 @@ else:
         	parser.error("Wrong number of arguments")
 		parser.print_help()
 
-	if mapWidth < 200 or mapWidth > 600 or mapHeight < 200 or mapHeight > 600 :
-		parser.error("Map size options incorrect")
+	if (mapWidth < 200 or mapWidth > 600) or (mapHeight < 200 or mapHeight > 600):
+		parser.error("Map size options incorrect (200 <= size,width,height <= 600)")
 		parser.print_help()
 		sys.exit(1)
 	
@@ -382,4 +390,3 @@ options = {
 StandaloneApplication(handler_app, options).run()
 
 sys.exit(1)
-
