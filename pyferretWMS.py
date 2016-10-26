@@ -34,7 +34,7 @@ def handler_app(environ, start_response):
 			raise
 
         	COMMAND = fields['COMMAND']
-        	VARIABLE = fields['VARIABLE']
+        	VARIABLE = fields['VARIABLE'].replace('%2B','+')
 
         	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
 
@@ -42,6 +42,7 @@ def handler_app(environ, start_response):
                 tmpname = os.path.basename(tmpname)
 
 		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
+
 		if fields['REQUEST'] == 'GetColorBar':
                 	pyferret.run('set window/aspect=1/outline=0')
                 	pyferret.run('go margins 2 4 3 3')
@@ -186,10 +187,24 @@ def template_WMS_client():
     		font-size: 14px;
 		text-indent: 0px;
 	}
+	#dialog {
+		display: none;
+		font-size: 12px;
+	}
+	#commandLine {
+                width: 100%;
+		font-size: 12px;
+	}
+	.ui-dialog { z-index: 1000 !important; }
+	.ui-dialog-title { font-size: 12px !important; }
     </style>
 </head>
 
 <body>
+
+<div id="dialog">
+	<input id="commandLine" type="text" placeholder="New command">
+</div>
 
 {% for aDict in cmdArray -%}
 <div class='mapContainer'>
@@ -204,9 +219,13 @@ def template_WMS_client():
 //===============================================
 var crs = L.CRS.EPSG4326;
 
+var map = [];
+var wmspyferret = [];
+var frontiers= [];
+
 {% for aDict in cmdArray -%}
 //===============================================
-var wmspyferret{{ loop.index }} = L.tileLayer.wms('http://localhost:8000', {
+wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000', {
 	command: '{{ aDict.command }}',
 	variable: '{{ aDict.variable }}',
     	crs: crs,
@@ -214,15 +233,15 @@ var wmspyferret{{ loop.index }} = L.tileLayer.wms('http://localhost:8000', {
 	transparent: true,
     	uppercase: true
 });
-var frontiers{{ loop.index }} = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+frontiers[{{ loop.index }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
 	layers: 'GCA:GCA_frontiersCountryAndRegions',
 	format: 'image/png',
     	crs: crs,
 	transparent: true
 });
 
-var map{{ loop.index }} = L.map('map{{ loop.index }}', {
-    layers: [wmspyferret{{ loop.index }}, frontiers{{ loop.index }}],
+map[{{ loop.index }}] = L.map('map{{ loop.index }}', {
+    layers: [wmspyferret[{{ loop.index }}], frontiers[{{ loop.index }}]],
     crs: crs,
     center: {{ mapCenter }},
     zoom: {{ mapZoom }},
@@ -233,17 +252,57 @@ var map{{ loop.index }} = L.map('map{{ loop.index }}', {
 //===============================================
 // Set up synchro between maps
 {% for synchro in listSynchroMapsToSet -%}
-map{{ synchro[0] }}.sync(map{{ synchro[1] }});
+map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
 {% endfor %}
 
 //===============================================
+function getTitle(aCommand, aVariable) {
+	// Inspect command to get /title qualifier if present
+	m = aCommand.match(/title=([\w&]+)/);		// equivalent to search in python
+	if (m != null)
+		title = m[1]
+	else 
+		title = aVariable 
+	return title
+}
+
+//===============================================
 {% for aDict in cmdArray -%}
-$('#title{{ loop.index }}').html('{{ aDict.title }}');   
-$('#title{{ loop.index }}').attr('title', wmspyferret{{ loop.index }}.wmsParams.command + ' ' + wmspyferret{{ loop.index }}.wmsParams.variable);   
-$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' + 
-                                                '&COMMAND=' + wmspyferret{{ loop.index }}.wmsParams.command +  
-                                                '&VARIABLE=' + wmspyferret{{ loop.index }}.wmsParams.variable);
+title{{ loop.index }} = getTitle(wmspyferret[{{ loop.index }}].wmsParams.command, wmspyferret[{{ loop.index }}].wmsParams.variable.replace('%2B','+'));
+$('#title{{ loop.index }}').html(title{{ loop.index }});   
+$('#title{{ loop.index }}').attr('title', wmspyferret[{{ loop.index }}].wmsParams.command + ' ' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('%2B','+'));   
+$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
+							'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+							'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 {% endfor %}
+
+//===============================================
+$(".title").on('click', function() {
+	id = $(this).attr('id');
+	mapId = id.replace('title','');
+	$('#commandLine').val($('#'+id).attr('title'));
+	$('#commandLine').attr('mapId', mapId);
+	$('#dialog').dialog({ title: 'Command of map #'+mapId, modal: false, width: 600, height: 100,
+			      position: {my: "left", at: "left+10", of: window} });
+});
+
+//===============================================
+$('#commandLine').on('keypress', function(e) {
+    if(e.which === 13) {
+        commandLine = $(this).val().split(' ');
+        command = commandLine[0];
+        commandLine.shift();
+        variable = commandLine.join(' ');       
+	mapId = $(this).attr('mapId');
+        wmspyferret[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
+	title = getTitle(command, variable);
+        $('#title'+mapId).html(title);   
+        $('#title'+mapId).attr('title', command + ' ' + variable);
+	$('#key'+mapId).children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
+							'&COMMAND=' + command +
+							'&VARIABLE=' + variable.replace('+','%2B'));
+    }
+});
 
 //===============================================
 var exec = require('child_process').exec,child;
@@ -289,7 +348,7 @@ usage = "%prog [--env=script.jnl] [--width=400] [--height=400] [--size=value] [-
 	"\nFor this, you can use the HTML code '&nbsp' for the non-breaking space (without the ending semi-colon)." + \
 	"\nFor example: 'shade/lev=20/title=Simulation&nbspA varA; shade/lev=20/title=Simulation&nbspB varB'"
 
-version = "%prog 0.9.4"
+version = "%prog 0.9.5"
 
 #------------------------------------------------------
 parser = OptionParser(usage=usage, version=version)
@@ -365,20 +424,13 @@ else:
 		parser.print_help()
 		sys.exit(1)
 	
-	# create array of dict {'command', 'variable', 'title'}
+	# create array of dict {'command', 'variable'}
 	for i,cmd in enumerate(cmds, start=1):
 		# Get command
 		command = cmd.split(' ')[0]			
 		# Get variable
 		variable = ' '.join(cmd.split(' ')[1:])
-		# Inspect command to get /title qualifier if present
-	        m = re.search('/title=([\w&]+)', command)	# [\w&] = alphanumeric and & (for html entities like &nbsp)
-	        if m:
-	           title = m.group(1)
-	        else:
-	           title = variable
-		# Append to array
-		cmdArray.append({'command': command, 'variable': variable, 'title': title})
+		cmdArray.append({'command': command, 'variable': variable})
 
 #------------------------------------------------------
 options = {
