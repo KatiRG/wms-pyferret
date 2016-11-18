@@ -36,10 +36,10 @@ def handler_app(environ, start_response):
         	COMMAND = fields['COMMAND']
         	VARIABLE = fields['VARIABLE']
 
-        	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
+        	pyferret.run('go ' + envScript)  # load the environment (dataset to open + variables definition)
 
-                tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-                tmpname = os.path.basename(tmpname)
+            tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+            tmpname = os.path.basename(tmpname)
 
 		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
 		if fields['REQUEST'] == 'GetColorBar':

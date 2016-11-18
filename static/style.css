@@ -1,0 +1,45 @@
+body {
+    /*font-family: Arial;*/
+    color: #555;
+    padding: 0px 100px;
+}
+
+* {
+   font-size: 15px;
+   line-height: 2;
+}
+
+#id-message {
+	font-size: 18px;
+}
+#id-sst {
+	width:204px;
+	height:204px; 
+	position:absolute; 
+	top:290px; 
+	left:30px;
+}
+
+#id-ph {
+	width:204px;
+	height:204px; 
+	position:absolute; 
+	top:290px; 
+	left:560px;
+}
+
+#id-O2 {
+	width:204px;
+	height:204px; 
+	position:absolute; 
+	top:710px; 
+	left:30px;
+}
+
+#id-prod {
+	width:204px;
+	height:204px; 
+	position:absolute; 
+	top:710px; 
+	left:560px;
+}

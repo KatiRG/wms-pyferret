@@ -19,6 +19,12 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
+from flask import Flask, redirect, url_for, request, render_template, Response
+# from myapp import config
+# from myapp.views import frontend
+
+
+
 #==============================================================
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
@@ -26,64 +32,95 @@ def number_of_workers():
 #==============================================================
 def handler_app(environ, start_response):
 
-    fields = parse_formvars(environ)
-    if environ['REQUEST_METHOD'] == 'GET':
-        
-        try:
-		if fields['SERVICE'] != 'WMS':
-			raise
+    print("in handler_app!!!!!!!!!!!")
 
-        	COMMAND = fields['COMMAND']
-        	VARIABLE = fields['VARIABLE'].replace('%2B','+')
-
-        	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
-
-                tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-                tmpname = os.path.basename(tmpname)
-
-		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
-
-		if fields['REQUEST'] == 'GetColorBar':
-                	pyferret.run('set window/aspect=1/outline=0')
-                	pyferret.run('go margins 2 4 3 3')
-                	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-                	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
-                	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
-
-                	im = Image.open(tmpdir + '/key' + tmpname)
-                	box = (0, 325, 400, 375)
-                	area = im.crop(box)
-                	area.save(tmpdir + '/' + tmpname, "PNG")
-
-		elif fields['REQUEST'] == 'GetMap':
-        		WIDTH = int(fields['WIDTH'])
-        		HEIGHT = int(fields['HEIGHT'])
-
-        		# BBOX=xmin,ymin,xmax,ymax
-        		BBOX = fields['BBOX'].split(',')
-
-        		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-        		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
-
-        		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
-        		pyferret.run('go margins 0 0 0 0')
-                	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-                	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
-		else:
-			raise
-
-                if os.path.isfile(tmpdir + '/' + tmpname):
-                        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                        img = ftmp.read()
-                        ftmp.close()
-                        os.remove(tmpdir + '/' + tmpname)
-      
-                start_response('200 OK', [('content-type', 'image/png')])
-                return iter(img) 
+    #-----------------------------------------------------
+    #Make the flask app
+    app = Flask(__name__)
+    # @app.route('/')
+    # def index():
+    #     # return render_template('flask_index.html')
+    #     return render_template('flask_index.html'), 200, {'Content-Type': 'text/html'}
+    junk = @app.route("/")
+    def hello():
+        # return "<h1 style='color:blue'>Hello There!</h1>"
+        return "Hello World!"
     
-        except:
-                return iter('Exception caught')
+    #-----------------------------------------------------    
+
+    response_body = b'Works fine'
+    status = '200 OK'
+
+    response_headers = [
+        ('Content-Type', 'text/plain'),
+    ]
+
+    start_response(status, response_headers)
+
+    # print('response_body: ', response_body)
+    # return [response_body]
+    # return app.run()
+    return [junk]
+    # return app.make_response(('Hello, World'))
+
+  #   fields = parse_formvars(environ)
+  #   if environ['REQUEST_METHOD'] == 'GET':
+        
+  #       try:
+		# if fields['SERVICE'] != 'WMS':
+		# 	raise
+
+  #       	COMMAND = fields['COMMAND']
+  #       	VARIABLE = fields['VARIABLE'].replace('%2B','+')
+
+  #       	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
+
+  #               tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+  #               tmpname = os.path.basename(tmpname)
+
+		# #print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
+
+		# if fields['REQUEST'] == 'GetColorBar':
+  #               	pyferret.run('set window/aspect=1/outline=0')
+  #               	pyferret.run('go margins 2 4 3 3')
+  #               	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
+  #               	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+  #               	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
+
+  #               	im = Image.open(tmpdir + '/key' + tmpname)
+  #               	box = (0, 325, 400, 375)
+  #               	area = im.crop(box)
+  #               	area.save(tmpdir + '/' + tmpname, "PNG")
+
+		# elif fields['REQUEST'] == 'GetMap':
+  #       		WIDTH = int(fields['WIDTH'])
+  #       		HEIGHT = int(fields['HEIGHT'])
+
+  #       		# BBOX=xmin,ymin,xmax,ymax
+  #       		BBOX = fields['BBOX'].split(',')
+
+  #       		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+  #       		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+
+  #       		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
+  #       		pyferret.run('go margins 0 0 0 0')
+  #               	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+  #               	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+
+		# else:
+		# 	raise
+
+  #               if os.path.isfile(tmpdir + '/' + tmpname):
+  #                       ftmp = open(tmpdir + '/' + tmpname, 'rb')
+  #                       img = ftmp.read()
+  #                       ftmp.close()
+  #                       os.remove(tmpdir + '/' + tmpname)
+      
+  #               start_response('200 OK', [('content-type', 'image/png')])
+  #               return iter(img) 
+    
+  #       except:
+  #               return iter('Exception caught')
 
 #==============================================================
 class myArbiter(gunicorn.arbiter.Arbiter):

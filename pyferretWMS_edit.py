@@ -29,20 +29,21 @@ def number_of_workers():
 
 #==============================================================
 def handler_app(environ, start_response):
+    print("in handler_app!!!!")
 
-    # environ = {
-    #     'SERVER_SOFTWARE': 'gunicorn/19.6.0', 
-    #     'SCRIPT_NAME': '', 
-    #     'REQUEST_METHOD': 'GET',
-    #     'SERVICE': 'WMS',
-    #     'COMMAND': 'shade/x=-180:180/y=-90:90/lev=(-inf)(-10,30,1)(inf)/pal=mpl_PSU_inferno',
-    #     'VARIABLE': 'temp[k=@max]',
-    #     'REQUEST': 'GetMap',
-    #     'HEIGHT': '256', 
-    #     'WIDTH': '256',  
-    #     'BBOX': '-180,0,-90,90'
-    # }
-    # fields = environ
+    environ = {
+        'SERVER_SOFTWARE': 'gunicorn/19.6.0', 
+        'SCRIPT_NAME': '', 
+        'REQUEST_METHOD': 'GET',
+        'SERVICE': 'WMS',
+        'COMMAND': 'shade/x=-180:180/y=-90:90/lev=(-inf)(-10,30,1)(inf)/pal=mpl_PSU_inferno',
+        'VARIABLE': 'temp[k=@max]',
+        'REQUEST': 'GetMap',
+        'HEIGHT': '256', 
+        'WIDTH': '256',  
+        'BBOX': '-180,0,-90,90'
+    }
+    fields = environ
    
     print('1. environ: ', environ)
 
@@ -126,8 +127,10 @@ class myArbiter(gunicorn.arbiter.Arbiter):
 
 #==============================================================
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
-
+    
     def __init__(self, app, options=None):
+        print("here")
+        print("app: ", app)
 
         # Start pyferret    
         pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
@@ -157,6 +160,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
         self.options = options or {}
         self.application = app
+        print("app here: ", app)
 
         super(StandaloneApplication, self).__init__()
 

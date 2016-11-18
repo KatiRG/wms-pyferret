@@ -1,0 +1,47 @@
+Flask Tutorials
+----------------
+https://www.tutorialspoint.com/flask/flask_environment.htm
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-i-hello-world
+http://code.runnable.com/UhLMQLffO1YSAADK/handle-a-post-request-in-flask-for-python
+
+To run a flask app
+-------------------
+
+$ python stressors.py
+ * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger pin code: 363-681-609
+
+To run pyferretWMS.py
+----------------------
+1) server mode:
+$ ./pyferretWMS.py --server
+
+2) with ferret command as an arg:
+$ ./pyferretWMS_edit.py 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/title=Maximum temp[k=@max]; shade/x=-180:180/y=-90:90/lev=(-inf)(0,140,5)(inf)/pal=mpl_Seq1_RdPu/title=Temperature&nbspvariance temp[k=@var]; shade/x=-180:180/y=-90:90/lev=(-inf)(30,40,0.5)(inf)/pal=mpl_PSU_viridis/title=Surface&nbspsalinity salt[k=1]'
+
+gunicorn notes
+--------------
+Example of a very small WSGI app loaded with a custom Application:
+http://docs.gunicorn.org/en/stable/custom.html
+
+Customize flask response class:
+https://blog.miguelgrinberg.com/post/customizing-the-flask-response-class
+
+bottle + gunicorn:
+http://blog.yprez.com/running-a-bottle-app-with-gunicorn.html
+
+Ars:
+----
+- Gunicorn is a server that can run applications. 
+- PyferretWMS is an app, and your Flask thing is also an app.
+- Here http://docs.gunicorn.org/en/stable/custom.html is what they do in their script to run their app. 
+So what you need is to somehow wrap the logic of their StandaloneApp into your Flask application, and that logic goes like: 
+
+handler_app is given to StandaloneApp and there is this load() function that returns it. So your focus should be probably on figuring out what's going on in handler_app (or just copy it as your Flask app, then you can extend).
+
+gunicorn custom app tested in PROJECTS/sandbox/gunicorn/custom.py. To run it:
+$ python custom.py
+-> Then go to http://127.0.0.1:8080 in browser
+-> See on the screen: "Works fine" (the return of handler_app)
