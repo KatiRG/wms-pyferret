@@ -47,8 +47,51 @@ def formhandler():
     return render_template('index.html', message=message, 
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
-@app.route('/slippymaps')
+@app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
+    environ = {
+        'REQUEST_METHOD': 'GET',
+        'SERVICE': 'WMS',
+        'COMMAND': 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno',
+        'VARIABLE': 'temp[k=@max]',
+        'REQUEST': 'GetMap',
+        'WIDTH': 256,
+        'HEIGHT': 256,
+        'BBOX': ['0', '-90', '90', '0']
+    }
+    # fields = parse_formvars(environ)
+
+    print("************environ: ", environ)
+    print("************environ[REQUEST_METHOD]: ", environ['REQUEST_METHOD'])
+    print('envScript: ', envScript)
+
+    tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+    tmpname = os.path.basename(tmpname)
+
+    if environ['REQUEST'] == 'GetMap':
+        WIDTH = int(environ['WIDTH'])
+        HEIGHT = int(environ['HEIGHT'])
+
+        # BBOX=xmin,ymin,xmax,ymax
+        BBOX = environ['BBOX']
+        COMMAND = environ['COMMAND']
+        VARIABLE = environ['VARIABLE']
+        print('VARIABLE: ', VARIABLE)
+        junk='shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/noaxis/nolab/nokey/hlim=-90:0/vlim=0:90 temp[k=@max]'
+        print("************junk: ", junk)
+
+        HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+        VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+
+        pyferret.run('use levitus_climatology')
+        pyferret.run('set window/aspect=1/outline=5')
+        pyferret.run('go margins 0 0 0 0')
+        pyferret.run('show data')
+        # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+        pyferret.run(junk)
+        pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+
+
     return render_template('slippymaps.html')
 
 #==============================================================
