@@ -19,11 +19,37 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, redirect, url_for, request, render_template, Response
-# from myapp import config
-# from myapp.views import frontend
+from flask import Flask, render_template, make_response, request
 
+#==============================================================
+# Define flask app
+app = Flask(__name__)
+@app.route('/')
+def index():
+    # return 'Hello world'
+    return render_template('index.html', message='')
 
+@app.route('/', methods = ['GET', 'POST'])
+def formhandler():
+    scenario = request.form['scenario']
+    message = "Showing maps for scenario " + scenario.replace('_','.') + ":"
+    if scenario == "RCP2_6":
+        map1 = "Logo-compact.jpg"
+        map2 = "Logo-compact.jpg"
+        map3 = "Logo-compact.jpg"
+        map4 = "Logo-compact.jpg"
+    elif scenario == "RCP8_5":
+        map1 = "sst_rcp8.5.jpg"
+        map2 = "ph_rcp8.5.jpg"
+        map3 = "O2_rcp8.5.jpg"
+        map4 = "productivity_rcp8.5.jpg"
+
+    return render_template('index.html', message=message, 
+        scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
+
+@app.route('/slippymaps')
+def slippymaps():
+    return render_template('slippymaps.html')
 
 #==============================================================
 def number_of_workers():
@@ -32,95 +58,64 @@ def number_of_workers():
 #==============================================================
 def handler_app(environ, start_response):
 
-    print("in handler_app!!!!!!!!!!!")
-
-    #-----------------------------------------------------
-    #Make the flask app
-    app = Flask(__name__)
-    # @app.route('/')
-    # def index():
-    #     # return render_template('flask_index.html')
-    #     return render_template('flask_index.html'), 200, {'Content-Type': 'text/html'}
-    junk = @app.route("/")
-    def hello():
-        # return "<h1 style='color:blue'>Hello There!</h1>"
-        return "Hello World!"
-    
-    #-----------------------------------------------------    
-
-    response_body = b'Works fine'
-    status = '200 OK'
-
-    response_headers = [
-        ('Content-Type', 'text/plain'),
-    ]
-
-    start_response(status, response_headers)
-
-    # print('response_body: ', response_body)
-    # return [response_body]
-    # return app.run()
-    return [junk]
-    # return app.make_response(('Hello, World'))
-
-  #   fields = parse_formvars(environ)
-  #   if environ['REQUEST_METHOD'] == 'GET':
+    fields = parse_formvars(environ)
+    if environ['REQUEST_METHOD'] == 'GET':
         
-  #       try:
-		# if fields['SERVICE'] != 'WMS':
-		# 	raise
+        try:
+		if fields['SERVICE'] != 'WMS':
+			raise
 
-  #       	COMMAND = fields['COMMAND']
-  #       	VARIABLE = fields['VARIABLE'].replace('%2B','+')
+        	COMMAND = fields['COMMAND']
+        	VARIABLE = fields['VARIABLE'].replace('%2B','+')
 
-  #       	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
+        	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
 
-  #               tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-  #               tmpname = os.path.basename(tmpname)
+                tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+                tmpname = os.path.basename(tmpname)
 
-		# #print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
+		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
 
-		# if fields['REQUEST'] == 'GetColorBar':
-  #               	pyferret.run('set window/aspect=1/outline=0')
-  #               	pyferret.run('go margins 2 4 3 3')
-  #               	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-  #               	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
-  #               	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
+		if fields['REQUEST'] == 'GetColorBar':
+                	pyferret.run('set window/aspect=1/outline=0')
+                	pyferret.run('go margins 2 4 3 3')
+                	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
+                	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+                	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
-  #               	im = Image.open(tmpdir + '/key' + tmpname)
-  #               	box = (0, 325, 400, 375)
-  #               	area = im.crop(box)
-  #               	area.save(tmpdir + '/' + tmpname, "PNG")
+                	im = Image.open(tmpdir + '/key' + tmpname)
+                	box = (0, 325, 400, 375)
+                	area = im.crop(box)
+                	area.save(tmpdir + '/' + tmpname, "PNG")
 
-		# elif fields['REQUEST'] == 'GetMap':
-  #       		WIDTH = int(fields['WIDTH'])
-  #       		HEIGHT = int(fields['HEIGHT'])
+		elif fields['REQUEST'] == 'GetMap':
+        		WIDTH = int(fields['WIDTH'])
+        		HEIGHT = int(fields['HEIGHT'])
 
-  #       		# BBOX=xmin,ymin,xmax,ymax
-  #       		BBOX = fields['BBOX'].split(',')
+        		# BBOX=xmin,ymin,xmax,ymax
+        		BBOX = fields['BBOX'].split(',')
 
-  #       		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-  #       		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+        		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+        		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
 
-  #       		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
-  #       		pyferret.run('go margins 0 0 0 0')
-  #               	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-  #               	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+        		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
+        		pyferret.run('go margins 0 0 0 0')
+                	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+                	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
-		# else:
-		# 	raise
+		else:
+			raise
 
-  #               if os.path.isfile(tmpdir + '/' + tmpname):
-  #                       ftmp = open(tmpdir + '/' + tmpname, 'rb')
-  #                       img = ftmp.read()
-  #                       ftmp.close()
-  #                       os.remove(tmpdir + '/' + tmpname)
+                if os.path.isfile(tmpdir + '/' + tmpname):
+                        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+                        img = ftmp.read()
+                        ftmp.close()
+                        os.remove(tmpdir + '/' + tmpname)
       
-  #               start_response('200 OK', [('content-type', 'image/png')])
-  #               return iter(img) 
+                start_response('200 OK', [('content-type', 'image/png')])
+                return iter(img) 
     
-  #       except:
-  #               return iter('Exception caught')
+        except:
+                return iter('Exception caught')
 
 #==============================================================
 class myArbiter(gunicorn.arbiter.Arbiter):
@@ -168,6 +163,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
             print('\nError: %s\n' % e, file=sys.stderr)
             sys.stderr.flush()
 	    sys.exit(1)
+
+#==============================================================
 
 #==============================================================
 from optparse import OptionParser
@@ -274,6 +271,10 @@ options = {
     'worker_class': 'sync',
     'threads': 1 
 }
-StandaloneApplication(handler_app, options).run()
+
+# Pass flask app directly to StandaloneApplication()
+# Idea came from run_simple here http://flask.pocoo.org/docs/0.11/patterns/appdispatch/
+#StandaloneApplication(handler_app, options).run()
+StandaloneApplication(app, options).run()
 
 sys.exit(1)
