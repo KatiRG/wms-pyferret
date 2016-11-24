@@ -19,7 +19,7 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request
+from flask import Flask, render_template, make_response, request, Response
 
 #==============================================================
 # Define flask app
@@ -47,14 +47,51 @@ def formhandler():
     return render_template('index.html', message=message, 
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
+# # http://stackoverflow.com/questions/23484491/flask-streaming-data-by-writing-to-client
+# @app.route('/loop')
+# def loop():
+#     def generate():
+#         # yield "Hello"
+#         # yield "World"
+#         junk = "alarm"
+
+#         yield '''
+#             <!doctype html>
+#             <html>
+#             <head>
+#                 <meta charset="utf-8">
+#                 <title>Slippymaps</title>
+#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+#                 <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
+#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+
+#                 <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
+#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+
+#                 <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
+#             </head>
+
+#             <body>
+#                 <div class="container-fluid">
+#                     <h1>Slippy maps</h1>
+#                 </div> <!-- ./container --> 
+#                 <p> FROM SCRIPT: {{junk}}</p>
+#             </body>
+#             </html>
+#     '''
+#     return Response(generate())
+
+
+
 @app.route('/slippymaps', methods = ['GET', 'POST'])
-def slippymaps():
+# @app.route('/slippymaps')
+def slippymaps_env():
     environ = {
         'REQUEST_METHOD': 'GET',
         'SERVICE': 'WMS',
-        'COMMAND': 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno',
         'VARIABLE': 'temp[k=@max]',
-        'REQUEST': 'GetMap',
+        'REQUEST': 'GetColorBar',
+        # 'REQUEST': 'GetMap',
         'WIDTH': 256,
         'HEIGHT': 256,
         'BBOX': ['0', '-90', '90', '0']
@@ -68,97 +105,65 @@ def slippymaps():
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
 
-    if environ['REQUEST'] == 'GetMap':
-        WIDTH = int(environ['WIDTH'])
-        HEIGHT = int(environ['HEIGHT'])
+    # if environ['REQUEST'] == 'GetMap':
+    #     WIDTH = int(environ['WIDTH'])
+    #     HEIGHT = int(environ['HEIGHT'])
 
-        # BBOX=xmin,ymin,xmax,ymax
-        BBOX = environ['BBOX']
-        COMMAND = environ['COMMAND']
+    #     # BBOX=xmin,ymin,xmax,ymax
+    #     BBOX = environ['BBOX']
+    #     COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'
+    #     VARIABLE = environ['VARIABLE']
+    #     print('VARIABLE: ', VARIABLE)
+    #     junk='shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/noaxis/nolab/nokey/hlim=-90:0/vlim=0:90 temp[k=@max]'
+    #     print("************junk: ", junk)
+
+    #     HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+    #     VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+
+    #     pyferret.run('use levitus_climatology')
+    #     pyferret.run('set window/aspect=1/outline=5')
+    #     pyferret.run('go margins 0 0 0 0')
+    #     pyferret.run('show data')
+    #     # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+    #     pyferret.run(junk)
+    #     pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+
+    if environ['REQUEST'] == 'GetColorBar':
+        print("GetColorBar")
+        COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_Seq1_RdPu'
         VARIABLE = environ['VARIABLE']
-        print('VARIABLE: ', VARIABLE)
-        junk='shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/noaxis/nolab/nokey/hlim=-90:0/vlim=0:90 temp[k=@max]'
-        print("************junk: ", junk)
-
-        HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-        VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
 
         pyferret.run('use levitus_climatology')
-        pyferret.run('set window/aspect=1/outline=5')
-        pyferret.run('go margins 0 0 0 0')
-        pyferret.run('show data')
-        # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-        pyferret.run(junk)
-        pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+        pyferret.run('set window/aspect=1/outline=0')
+        pyferret.run('go margins 2 4 3 3')
+        pyferret.run(COMMAND + '/set_up ' + VARIABLE)
+        pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+        pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
+        im = Image.open(tmpdir + '/key' + tmpname)
+        box = (0, 325, 400, 375)
+        area = im.crop(box)
+        area.save(tmpdir + '/' + tmpname, "PNG")
 
-    return render_template('slippymaps.html')
+    else:
+        raise
+    
+    if os.path.isfile(tmpdir + '/' + tmpname):
+        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+        img = ftmp.read()
+        ftmp.close()
+        os.remove(tmpdir + '/' + tmpname)
+        print("********url: ", tmpdir + '/' + tmpname)
+    
+
+    # start_response('200 OK', [('content-type', 'image/png')])
+    # return iter(img)
+    return render_template('slippymaps.html', img=img)
+    
 
 #==============================================================
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
-
-#==============================================================
-def handler_app(environ, start_response):
-
-    fields = parse_formvars(environ)
-    if environ['REQUEST_METHOD'] == 'GET':
-        
-        try:
-		if fields['SERVICE'] != 'WMS':
-			raise
-
-        	COMMAND = fields['COMMAND']
-        	VARIABLE = fields['VARIABLE'].replace('%2B','+')
-
-        	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
-
-                tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-                tmpname = os.path.basename(tmpname)
-
-		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
-
-		if fields['REQUEST'] == 'GetColorBar':
-                	pyferret.run('set window/aspect=1/outline=0')
-                	pyferret.run('go margins 2 4 3 3')
-                	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-                	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
-                	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
-
-                	im = Image.open(tmpdir + '/key' + tmpname)
-                	box = (0, 325, 400, 375)
-                	area = im.crop(box)
-                	area.save(tmpdir + '/' + tmpname, "PNG")
-
-		elif fields['REQUEST'] == 'GetMap':
-        		WIDTH = int(fields['WIDTH'])
-        		HEIGHT = int(fields['HEIGHT'])
-
-        		# BBOX=xmin,ymin,xmax,ymax
-        		BBOX = fields['BBOX'].split(',')
-
-        		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-        		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
-
-        		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
-        		pyferret.run('go margins 0 0 0 0')
-                	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-                	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
-		else:
-			raise
-
-                if os.path.isfile(tmpdir + '/' + tmpname):
-                        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                        img = ftmp.read()
-                        ftmp.close()
-                        os.remove(tmpdir + '/' + tmpname)
-      
-                start_response('200 OK', [('content-type', 'image/png')])
-                return iter(img) 
-    
-        except:
-                return iter('Exception caught')
 
 #==============================================================
 class myArbiter(gunicorn.arbiter.Arbiter):
@@ -207,7 +212,6 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
             sys.stderr.flush()
 	    sys.exit(1)
 
-#==============================================================
 
 #==============================================================
 from optparse import OptionParser
@@ -270,42 +274,6 @@ if serverOnly:
 	if len(args) != 0:
         	parser.error("No argument needed in mode server")
 		parser.print_help()
-
-else:
-	if len(args) != 1:
-        	parser.error("Wrong number of arguments")
-		parser.print_help()
-
-	if (mapWidth < 200 or mapWidth > 600) or (mapHeight < 200 or mapHeight > 600):
-		parser.error("Map size options incorrect (200 <= size,width,height <= 600)")
-		parser.print_help()
-		sys.exit(1)
-	
-	if not os.path.isfile(envScript):
-		parser.error("Environment script option missing")
-		parser.print_help()
-		sys.exit(1)
-	
-	cmdsRequested = args[0]
-	
-	cmds = cmdsRequested.split(';')		# get individual commands
-	cmds = map(str.strip, cmds)  		# remove surrounding spaces if present
-	
-	nbMaps = len(cmds)
-	print(str(nbMaps) + ' maps to draw')
-	
-	if nbMaps > 4:
-		print("\n=======> Error: Maximum number of maps: 4\n")
-		parser.print_help()
-		sys.exit(1)
-	
-	# create array of dict {'command', 'variable'}
-	for i,cmd in enumerate(cmds, start=1):
-		# Get command
-		command = cmd.split(' ')[0]			
-		# Get variable
-		variable = ' '.join(cmd.split(' ')[1:])
-		cmdArray.append({'command': command, 'variable': variable})
 
 #------------------------------------------------------
 options = {
