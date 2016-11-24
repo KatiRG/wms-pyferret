@@ -28,72 +28,70 @@ def handler_app(environ, start_response):
 
     fields = parse_formvars(environ)
     if environ['REQUEST_METHOD'] == 'GET':
-        
         try:
-		if fields['SERVICE'] != 'WMS':
-			raise
+                        
+            if fields['SERVICE'] != 'WMS':
+                raise
 
-        	COMMAND = fields['COMMAND']
-        	VARIABLE = fields['VARIABLE'].replace('%2B','+')
+            COMMAND = fields['COMMAND']
+            VARIABLE = fields['VARIABLE'].replace('%2B','+')           
 
-        	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
+            pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
 
-                tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-                tmpname = os.path.basename(tmpname)
+            tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+            tmpname = os.path.basename(tmpname)
 
-		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
+            if fields['REQUEST'] == 'GetColorBar':
+                pyferret.run('set window/aspect=1/outline=0')
+                pyferret.run('go margins 2 4 3 3')
+                pyferret.run(COMMAND + '/set_up ' + VARIABLE)
+                pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+                pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
-		if fields['REQUEST'] == 'GetColorBar':
-                	pyferret.run('set window/aspect=1/outline=0')
-                	pyferret.run('go margins 2 4 3 3')
-                	pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-                	pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
-                	pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
+                im = Image.open(tmpdir + '/key' + tmpname)
+                box = (0, 325, 400, 375)
+                area = im.crop(box)
+                area.save(tmpdir + '/' + tmpname, "PNG")           
 
-                	im = Image.open(tmpdir + '/key' + tmpname)
-                	box = (0, 325, 400, 375)
-                	area = im.crop(box)
-                	area.save(tmpdir + '/' + tmpname, "PNG")
+            elif fields['REQUEST'] == 'GetMap':
+                WIDTH = int(fields['WIDTH'])
+                HEIGHT = int(fields['HEIGHT'])               
 
-		elif fields['REQUEST'] == 'GetMap':
-        		WIDTH = int(fields['WIDTH'])
-        		HEIGHT = int(fields['HEIGHT'])
+                # BBOX=xmin,ymin,xmax,ymax
+                BBOX = fields['BBOX'].split(',')                
 
-        		# BBOX=xmin,ymin,xmax,ymax
-        		BBOX = fields['BBOX'].split(',')
+                HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+                VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
 
-        		HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-        		VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+                pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
+                pyferret.run('go margins 0 0 0 0')
+                pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
+                pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+    
+            else:
+                raise
 
-        		pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
-        		pyferret.run('go margins 0 0 0 0')
-                	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-                	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+            if os.path.isfile(tmpdir + '/' + tmpname):                
+                ftmp = open(tmpdir + '/' + tmpname, 'rb')
+                img = ftmp.read()
+                ftmp.close()
+                os.remove(tmpdir + '/' + tmpname)                
 
-		else:
-			raise
-
-                if os.path.isfile(tmpdir + '/' + tmpname):
-                        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                        img = ftmp.read()
-                        ftmp.close()
-                        os.remove(tmpdir + '/' + tmpname)
-      
-                start_response('200 OK', [('content-type', 'image/png')])
-                return iter(img) 
+            start_response('200 OK', [('content-type', 'image/png')])
+            return iter(img)
     
         except:
-                return iter('Exception caught')
-
+            return iter('Exception caught')
+     
 #==============================================================
 class myArbiter(gunicorn.arbiter.Arbiter):
 
     def halt(self):
-	# Close pyferret
+	   # Close pyferret
         pyferret.stop()
 
-	print('Removing temporary directory: ', tmpdir)
-	shutil.rmtree(tmpdir)
+    	print('Removing temporary directory: ', tmpdir)
+    	shutil.rmtree(tmpdir)
 
         super(myArbiter, self).halt()
 
@@ -103,7 +101,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
     def __init__(self, app, options=None):
 
-	# Start pyferret	
+	    # Start pyferret	
         pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
 
     	master_pid = os.getpid()
@@ -143,7 +141,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def load(self):
         return self.application
 
-# if control before exiting is needed
+    # if control before exiting is needed
     def run(self):
         try:
             myArbiter(self).run()
