@@ -48,8 +48,8 @@ def formhandler():
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
 # http://blog.luisrei.com/articles/flaskrest.html
-@app.route('/mapresponse')
-def api_mapresponse():
+@app.route('/slippymaps', methods = ['GET'])
+def api_slippymaps():
     #Hard-code input parameters FOR NOW.
     environ = {
         'VARIABLE': 'temp[k=@max]',
@@ -57,92 +57,40 @@ def api_mapresponse():
         'HEIGHT': 256,
         'BBOX': ['0', '-90', '90', '0']
     }
+
+    reqDict = { 
+        # 'REQUEST' : 'GetMap'
+        'REQUEST' : 'GetColorBar'
+    }
+
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
-    
-    #Define pyferret variables for 'REQUEST' == 'GetMap'
+    print(reqDict['REQUEST'])
+
     COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'
     VARIABLE = environ['VARIABLE']
-    BBOX = environ['BBOX']
-    WIDTH = int(environ['WIDTH'])
-    HEIGHT = int(environ['HEIGHT'])
-
-    HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-    VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
-
-    pyferret.run('use levitus_climatology')
-    pyferret.run('set window/aspect=1/outline=5')
-    pyferret.run('go margins 0 0 0 0')
-    pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
-    pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
     
+    #Define pyferret variables for 'REQUEST' == 'GetMap'
+    if reqDict['REQUEST'] == 'GetMap':
+        print("&&&&&&&&&&&&&&& GetMap")
+        
+        BBOX = environ['BBOX']
+        WIDTH = int(environ['WIDTH'])
+        HEIGHT = int(environ['HEIGHT'])
 
-    if os.path.isfile(tmpdir + '/' + tmpname):
-        print("true")
-        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-        img = ftmp.read()
-        ftmp.close()
-        os.remove(tmpdir + '/' + tmpname)
-    else:
-        print("********FALSE")    
+        HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+        VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
 
-    # start_response('200 OK', [('content-type', 'image/png')])
-    resp = Response(img, status=200, mimetype='image/png')
-    
-    return resp
+        pyferret.run('use levitus_climatology')
+        # pyferret.run('use levitus_climatology') #to load a second dataset, then use d=2 in command line
+        #shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno temp[k=@min, d=1]
+        pyferret.run('set window/aspect=1/outline=5')
+        pyferret.run('go margins 0 0 0 0')
+        pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
+        pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
-
-
-@app.route('/slippymaps', methods = ['GET', 'POST'])
-# @app.route('/slippymaps')
-def slippymaps_env():
-    environ = {
-        'REQUEST_METHOD': 'GET',
-        'SERVICE': 'WMS',
-        'VARIABLE': 'temp[k=@max]',
-        'REQUEST': 'GetColorBar',
-        # 'REQUEST': 'GetMap',
-        'WIDTH': 256,
-        'HEIGHT': 256,
-        'BBOX': ['0', '-90', '90', '0']
-    }
-    # fields = parse_formvars(environ)
-
-    print("************environ: ", environ)
-    print("************environ[REQUEST_METHOD]: ", environ['REQUEST_METHOD'])
-    print('envScript: ', envScript)
-
-    tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-    tmpname = os.path.basename(tmpname)
-
-    # if environ['REQUEST'] == 'GetMap':
-    #     WIDTH = int(environ['WIDTH'])
-    #     HEIGHT = int(environ['HEIGHT'])
-
-    #     # BBOX=xmin,ymin,xmax,ymax
-    #     BBOX = environ['BBOX']
-    #     COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'
-    #     VARIABLE = environ['VARIABLE']
-    #     print('VARIABLE: ', VARIABLE)
-    #     junk='shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/noaxis/nolab/nokey/hlim=-90:0/vlim=0:90 temp[k=@max]'
-    #     print("************junk: ", junk)
-
-    #     HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-    #     VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
-
-    #     pyferret.run('use levitus_climatology')
-    #     pyferret.run('set window/aspect=1/outline=5')
-    #     pyferret.run('go margins 0 0 0 0')
-    #     pyferret.run('show data')
-    #     # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-    #     pyferret.run(junk)
-    #     pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
-    if environ['REQUEST'] == 'GetColorBar':
-        print("GetColorBar")
-        COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_Seq1_RdPu'
-        VARIABLE = environ['VARIABLE']
+    elif reqDict['REQUEST'] == 'GetColorBar':
+        print("&&&&&&&&&&&&&&& GetColorBar")
 
         pyferret.run('use levitus_climatology')
         pyferret.run('set window/aspect=1/outline=0')
@@ -154,22 +102,27 @@ def slippymaps_env():
         im = Image.open(tmpdir + '/key' + tmpname)
         box = (0, 325, 400, 375)
         area = im.crop(box)
-        area.save(tmpdir + '/' + tmpname, "PNG")
+        area.save(tmpdir + '/' + tmpname, "PNG")           
 
-    else:
-        raise
-    
+
     if os.path.isfile(tmpdir + '/' + tmpname):
+        print("***************true")
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()
         ftmp.close()
         os.remove(tmpdir + '/' + tmpname)
-        print("********url: ", tmpdir + '/' + tmpname)
-    
+    else:
+        print("********FALSE")    
 
-    # start_response('200 OK', [('content-type', 'image/png')])
-    # return iter(img)
-    return render_template('slippymaps.html', img=img)
+    resp = Response(img, status=200, mimetype='image/png')
+    
+    return resp
+    # return render_template('slippymaps.html', **resp)
+
+@app.route('/slippymaps_page', methods = ['GET', 'POST'])
+def slippymaps_page():
+    return render_template('slippymaps.html')
+
     
 
 #==============================================================
