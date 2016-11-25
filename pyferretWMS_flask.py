@@ -47,39 +47,50 @@ def formhandler():
     return render_template('index.html', message=message, 
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
-# # http://stackoverflow.com/questions/23484491/flask-streaming-data-by-writing-to-client
-# @app.route('/loop')
-# def loop():
-#     def generate():
-#         # yield "Hello"
-#         # yield "World"
-#         junk = "alarm"
+# http://blog.luisrei.com/articles/flaskrest.html
+@app.route('/mapresponse')
+def api_mapresponse():
+    #Hard-code input parameters FOR NOW.
+    environ = {
+        'VARIABLE': 'temp[k=@max]',
+        'WIDTH': 256,
+        'HEIGHT': 256,
+        'BBOX': ['0', '-90', '90', '0']
+    }
+    tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+    tmpname = os.path.basename(tmpname)
+    
+    #Define pyferret variables for 'REQUEST' == 'GetMap'
+    COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'
+    VARIABLE = environ['VARIABLE']
+    BBOX = environ['BBOX']
+    WIDTH = int(environ['WIDTH'])
+    HEIGHT = int(environ['HEIGHT'])
 
-#         yield '''
-#             <!doctype html>
-#             <html>
-#             <head>
-#                 <meta charset="utf-8">
-#                 <title>Slippymaps</title>
-#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-#                 <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
-#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+    HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+    VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
 
-#                 <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
-#                 <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+    pyferret.run('use levitus_climatology')
+    pyferret.run('set window/aspect=1/outline=5')
+    pyferret.run('go margins 0 0 0 0')
+    pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
+    pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
-#                 <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
-#             </head>
+    
 
-#             <body>
-#                 <div class="container-fluid">
-#                     <h1>Slippy maps</h1>
-#                 </div> <!-- ./container --> 
-#                 <p> FROM SCRIPT: {{junk}}</p>
-#             </body>
-#             </html>
-#     '''
-#     return Response(generate())
+    if os.path.isfile(tmpdir + '/' + tmpname):
+        print("true")
+        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+        img = ftmp.read()
+        ftmp.close()
+        os.remove(tmpdir + '/' + tmpname)
+    else:
+        print("********FALSE")    
+
+    # start_response('200 OK', [('content-type', 'image/png')])
+    resp = Response(img, status=200, mimetype='image/png')
+    
+    return resp
 
 
 
