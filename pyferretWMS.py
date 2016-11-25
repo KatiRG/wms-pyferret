@@ -25,6 +25,7 @@ def number_of_workers():
 
 #==============================================================
 def handler_app(environ, start_response):
+    print('@@@@@@@@@ HOW MANY?????????', parse_formvars(environ))
 
     fields = parse_formvars(environ)
     if environ['REQUEST_METHOD'] == 'GET':
@@ -34,9 +35,11 @@ def handler_app(environ, start_response):
                 raise
 
             COMMAND = fields['COMMAND']
-            VARIABLE = fields['VARIABLE'].replace('%2B','+')           
+            VARIABLE = fields['VARIABLE'].replace('%2B','+')
+            print("############### in handler_app for var: ", VARIABLE)
 
             pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
+            print('@@@@@@@@@ TIMES?????????')
 
             tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
             tmpname = os.path.basename(tmpname)
@@ -51,31 +54,37 @@ def handler_app(environ, start_response):
                 im = Image.open(tmpdir + '/key' + tmpname)
                 box = (0, 325, 400, 375)
                 area = im.crop(box)
-                area.save(tmpdir + '/' + tmpname, "PNG")           
+                area.save(tmpdir + '/' + tmpname, "PNG")
 
             elif fields['REQUEST'] == 'GetMap':
                 WIDTH = int(fields['WIDTH'])
-                HEIGHT = int(fields['HEIGHT'])               
+                HEIGHT = int(fields['HEIGHT'])
 
                 # BBOX=xmin,ymin,xmax,ymax
-                BBOX = fields['BBOX'].split(',')                
+                BBOX = fields['BBOX'].split(',')
+                print("************* BBOX: ", BBOX)
+                print("************* BBOX: ", BBOX[0], BBOX[1], BBOX[2], BBOX[3])
+
 
                 HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-                VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
+                VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
 
                 pyferret.run('set window/aspect=1/outline=5')           # outline=5 is a strange setting but works otherwise get outline around polygons
                 pyferret.run('go margins 0 0 0 0')
-                pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
+                print('@@@@@@@@@ TO CYCLE?????????')
+                pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+                print('@@@@@@@@@ THROUGH?????????')
                 pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+                print('@@@@@@@@@ HERE?????????')
     
             else:
                 raise
 
             if os.path.isfile(tmpdir + '/' + tmpname):                
                 ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                img = ftmp.read()
+                img = ftmp.read()                
                 ftmp.close()
-                os.remove(tmpdir + '/' + tmpname)                
+                os.remove(tmpdir + '/' + tmpname)
 
             start_response('200 OK', [('content-type', 'image/png')])
             return iter(img)
@@ -379,6 +388,7 @@ mapCenter = options.center
 mapZoom = options.zoom
 envScript = options.envScript
 serverOnly = options.serverOnly
+print('options: ', options)
 
 #------------------------------------------------------
 # Global variables

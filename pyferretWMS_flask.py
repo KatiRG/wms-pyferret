@@ -50,6 +50,7 @@ def formhandler():
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET'])
 def api_slippymaps_maplayer():
+    print('@@@@@@@@@ HOW MANY?????????')
     #Hard-code input parameters FOR NOW.
     environ = {
         'VARIABLE': 'temp[k=@max]',
@@ -59,7 +60,9 @@ def api_slippymaps_maplayer():
     }
 
     pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
-
+    print('@@@@@@@@@ TIMES?????????', pyferret.run('go ' + envScript))
+    pyferret.run('use levitus_climatology')
+    
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)    
 
@@ -70,31 +73,40 @@ def api_slippymaps_maplayer():
     print("&&&&&&&&&&&&&&& GetMap")
     
     BBOX = environ['BBOX']
-    print("BBOX: ", BBOX)
     WIDTH = int(environ['WIDTH'])
     HEIGHT = int(environ['HEIGHT'])
 
     HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-    VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]                
+    VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+    
+    # need to cycle through 6 BBOX coords
+    # bboxArray = [ [-90, 0, 0, 90], [0, 0, 90, 90], [-180, 0, -90, 90], [-90, -90, 0, 0], [0, -90, 90, 0], [-180, -90, -90, 0] ]
+    # for idx in range(0, len(bboxArray)):
+    #     print('idx: ', idx)
+        # print("****** bboxArray[idx]: ", bboxArray[idx])
+        # HLIM = '/hlim=' + repr(bboxArray[idx][0]) + ':' + repr(bboxArray[idx][2])
+        # VLIM = '/vlim=' + repr(bboxArray[idx][1]) + ':' + repr(bboxArray[idx][3])
 
-    pyferret.run('use levitus_climatology')
     # pyferret.run('use levitus_climatology') #to load a second dataset, then use d=2 in command line
     #shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno temp[k=@min, d=1]
     pyferret.run('set window/aspect=1/outline=5')
     pyferret.run('go margins 3 0 0 0')
-    pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
+    print('@@@@@@@@@ TO CYCLE?????????')
+
+    pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)              
+    print('@@@@@@@@@ THROUGH?????????')
+
     pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
-    if os.path.isfile(tmpdir + '/' + tmpname):
-        print("***************true")
+    print('@@@@@@@@@ HERE?????????')
+
+    if os.path.isfile(tmpdir + '/' + tmpname):        
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()
         print("*****************len(img): ", len(img))
         ftmp.close()
         os.remove(tmpdir + '/' + tmpname)
-    else:
-        print("********FALSE")    
-
+    
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
     
