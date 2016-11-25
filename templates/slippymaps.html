@@ -29,10 +29,15 @@
 
 	    <div class='mapContainer'>
 			<div id='title1' class='title'></div>
+
+			<!-- MAP1 -->			
 			<div id='map1' class='map'></div>
+
+			<!-- COLORBAR -->
 			<!-- <div id='key1' class='key'><img /></div> -->
 			<div id='key1' class='key'>
-				<img src="http://localhost:8000/slippymaps">
+				<img src="http://localhost:8000/slippymaps_colorbar">
+			
 			</div>
 		</div>
 
@@ -52,7 +57,7 @@
 			var frontiers= [];
 
 			//===============================================
-			wmspyferret[1] = L.tileLayer.wms('http://localhost:8000', {
+			wmspyferret[1] = L.tileLayer.wms('http://localhost:8000/slippymaps_maplayer', {
 				command: 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno',
 				variable: 'temp[k=@max]',
 			    	crs: crs,
