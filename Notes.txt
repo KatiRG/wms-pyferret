@@ -45,3 +45,30 @@ gunicorn custom app tested in PROJECTS/sandbox/gunicorn/custom.py. To run it:
 $ python custom.py
 -> Then go to http://127.0.0.1:8080 in browser
 -> See on the screen: "Works fine" (the return of handler_app)
+
+Cannot render multiple times to same template:
+http://stackoverflow.com/questions/34009980/return-a-download-and-rendered-page-in-one-flask-response
+
+Flask RESTful API
+-----------------
+http://blog.luisrei.com/articles/flaskrest.html
+
+
+WSGI (http://lucumr.pocoo.org/2007/5/21/getting-started-with-wsgi/)
+----
+WSGI uses fn(environ, start_response) to render an html page taking as input a parameter specified in the url, eg:
+http://localhost:8080/?subject=John
+
+from cgi import parse_qs, escape
+
+def hello_world(environ, start_response):
+    parameters = parse_qs(environ.get('QUERY_STRING', ''))
+    if 'subject' in parameters:
+        subject = escape(parameters['subject'][0])
+    else:
+        subject = 'World'
+    start_response('200 OK', [('Content-Type', 'text/html')])
+    return ['''Hello %(subject)s
+    Hello %(subject)s!
+
+''' % {'subject': subject}]

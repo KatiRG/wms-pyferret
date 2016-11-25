@@ -48,20 +48,22 @@ def formhandler():
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
 # http://blog.luisrei.com/articles/flaskrest.html
-@app.route('/slippymaps', methods = ['GET'])
-def api_slippymaps():
+@app.route('/slippymaps_storage', methods = ['GET'])
+def api_slippymaps_storage():
     #Hard-code input parameters FOR NOW.
     environ = {
         'VARIABLE': 'temp[k=@max]',
         'WIDTH': 256,
         'HEIGHT': 256,
-        'BBOX': ['0', '-90', '90', '0']
+        'BBOX': ['-180', '-90', '90', '90']
     }
 
     reqDict = { 
-        # 'REQUEST' : 'GetMap'
-        'REQUEST' : 'GetColorBar'
+        'REQUEST' : 'GetMap'
+        # 'REQUEST' : 'GetColorBar'
     }
+
+    pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
@@ -75,6 +77,7 @@ def api_slippymaps():
         print("&&&&&&&&&&&&&&& GetMap")
         
         BBOX = environ['BBOX']
+        print("BBOX: ", BBOX)
         WIDTH = int(environ['WIDTH'])
         HEIGHT = int(environ['HEIGHT'])
 
@@ -85,7 +88,7 @@ def api_slippymaps():
         # pyferret.run('use levitus_climatology') #to load a second dataset, then use d=2 in command line
         #shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno temp[k=@min, d=1]
         pyferret.run('set window/aspect=1/outline=5')
-        pyferret.run('go margins 0 0 0 0')
+        pyferret.run('go margins 3 0 0 0')
         pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)                
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
@@ -109,18 +112,19 @@ def api_slippymaps():
         print("***************true")
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()
+        print("*****************len(img): ", len(img))
         ftmp.close()
         os.remove(tmpdir + '/' + tmpname)
     else:
         print("********FALSE")    
 
-    resp = Response(img, status=200, mimetype='image/png')
+    resp = Response(iter(img), status=200, mimetype='image/png')
     
     return resp
     # return render_template('slippymaps.html', **resp)
 
-@app.route('/slippymaps_page', methods = ['GET', 'POST'])
-def slippymaps_page():
+@app.route('/slippymaps', methods = ['GET', 'POST'])
+def slippymaps():
     return render_template('slippymaps.html')
 
     
