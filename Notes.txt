@@ -72,3 +72,59 @@ def hello_world(environ, start_response):
     Hello %(subject)s!
 
 ''' % {'subject': subject}]
+
+
+flask start_response and environ
+---------------------------------
+http://stackoverflow.com/questions/9680073/how-do-i-use-flask-routes-with-apache-and-mod-wsgi
+
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def application(environ, start_response):
+        status = '200 OK'
+        output = "Hello World!"
+        response_headers = [('Content-type', 'text/plain'),
+                            ('Content-Length', str(len(output)))]
+        start_response(status, response_headers)
+        return [output]
+
+@app.route('/upload')
+def upload(environ, start_response):
+        output = "Uploading"
+        status = '200 OK'
+        response_headers = [('Content-type', 'text/plain'),
+                            ('Content-Length', str(len(output)))]
+        start_response(status, response_headers)
+        return [output]
+
+if __name__ == '__main__':
+        app.run()
+
+
+STRUCTURE
+---------
+gunicorn passes the requests (GET request if coming from the URL, POST request if coming from a form) to the flask app through WSGI
+
+refs:
+-https://www.matthealy.com.au/blog/post/deploying-flask-to-amazon-web-services-ec2/
+
+GUNICORN
+-Flask application server (a python WSGI HTTP server)
+-serves the python code (don't want to use the Flask development server, as it is not safe to do so for a production environment)
+
+NGINX
+-a web server installed on our instance that will forward requests from port 80 to our Flask app running internally. It is best practice to have a web server handle our port 80 requests, because the Flask application server (Gunicorn) we are using is designed to serve Python code, but not ideal for handling port 80 requests from the Internet.
+
+SUPERVISOR
+-An improvement that can made is to run Gunicorn via Supervisor. Supervisor looks after our Gunicorn processes and makes sure they are restarted if anything goes wrong, and ensures the processes are started at boot time.
+(see: https://www.matthealy.com.au/blog/post/using-supervisor-with-flask-and-gunicorn/)
+
+
+FLASK REQUESTS
+---------------
+
+flask.Request.args: gets the part in the URL after the question mark
+(http://flask.pocoo.org/docs/0.10/api/#flask.Request.args)

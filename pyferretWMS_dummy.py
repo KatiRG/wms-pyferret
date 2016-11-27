@@ -74,28 +74,32 @@ def api_hello():
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET'])
 def api_slippymaps_maplayer():
+    # http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetMap&LAYERS=&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&COMMAND=shade%2Fx%3D-180%3A180%2Fy%3D-90%3A90%2Flev%3D20v%2Fpal%3Dmpl_PSU_inferno&VARIABLE=temp%5Bk%3D%40max%5D&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-90,0,0,90
+
+    SERVICE = request.args.get('SERVICE') # WMS
+    req_bbox = request.args.get('BBOX') 
+    COMMAND = request.args.get('COMMAND')
+    VARIABLE = request.args.get('VARIABLE')
+    WIDTH = request.args.get('WIDTH')
+    HEIGHT = request.args.get('HEIGHT')
+    BBOX = request.args.get('BBOX')
+
     print('@@@@@@@@@ HOW MANY?????????')
-    #Hard-code input parameters FOR NOW.
-    environ = {
-        'VARIABLE': 'temp[k=@max]',
-        'WIDTH': 256,
-        'HEIGHT': 256,
-        'BBOX': ['-180', '-90', '90', '90']
-    }
+    print('@@@@@@@@@ SERVICE: ', SERVICE)
+    print('@@@@@@@@@ BBOX: ', BBOX)
+    BBOX = BBOX.split(',')
+    print('@@@@@@@@@ BBOX AFTER SPLIT: ', BBOX)
+    print('@@@@@@@@@ BBOX[0]: ', BBOX[0])
+    print('@@@@@@@@@ BBOX[1]: ', BBOX[1])
+    print('@@@@@@@@@ BBOX[2]: ', BBOX[2])
+    print('@@@@@@@@@ BBOX[3]: ', BBOX[3])
+    print('@@@@@@@@@ COMMAND: ', COMMAND)
 
     # pyferret.run('go ' + envScript)
     # pyferret.run('use levitus_climatology')
     
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-    tmpname = os.path.basename(tmpname)    
-
-    COMMAND = 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'
-    VARIABLE = environ['VARIABLE']
-    
-    #Define pyferret variables for 'REQUEST' == 'GetMap'
-    BBOX = environ['BBOX']
-    WIDTH = int(environ['WIDTH'])
-    HEIGHT = int(environ['HEIGHT'])
+    tmpname = os.path.basename(tmpname)
 
     HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
     VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
