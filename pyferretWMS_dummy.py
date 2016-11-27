@@ -47,30 +47,6 @@ def formhandler():
     return render_template('index.html', message=message, 
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
-# http://stackoverflow.com/questions/9680073/how-do-i-use-flask-routes-with-apache-and-mod-wsgi
-# @app.route('/dummy')
-# def application(environ, start_response):
-#     status = '200 OK'
-#     output = "Hello World!"
-#     response_headers = [('Content-type', 'text/plain'),
-#                         ('Content-Length', str(len(output)))]
-#     start_response(status, response_headers)
-#     return [output]
-
-# http://blog.luisrei.com/articles/flaskrest.html
-@app.route('/hello', methods = ['GET'])
-def api_hello():
-    data = {
-        'hello'  : 'world',
-        'number' : 3
-    }
-    js = json.dumps(data)
-
-    resp = Response(js, status=200, mimetype='application/json')
-    resp.headers['Link'] = 'http://luisrei.com'
-
-    return resp
-
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET'])
 def api_slippymaps_maplayer():
@@ -125,27 +101,7 @@ def api_slippymaps_maplayer():
 @app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
     return render_template('slippymaps.html')
-
-# http://stackoverflow.com/questions/25065900/request-args-getkey-gives-null-flask
-@app.route('/signup', methods=['GET','POST'])                              
-def signup():                                                              
-    if request.method == 'GET':                                            
-        return render_template('signup.html')                              
-    email = request.form['email']                                          
-    return redirect(url_for('character', email=email))                     
-
-
-@app.route('/character', methods=['POST', 'GET'])                          
-def character():                                                           
-    email_from_form = request.form.get('email')                            
-    email_from_args = request.args.get('email')                            
-    return render_template('character.html',                               
-                           email_from_form=email_from_form,                
-                           email_from_args=email_from_args)               
-
-
-    
-
+             
 #==============================================================
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
