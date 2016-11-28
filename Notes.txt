@@ -128,3 +128,23 @@ FLASK REQUESTS
 
 flask.Request.args: gets the part in the URL after the question mark
 (http://flask.pocoo.org/docs/0.10/api/#flask.Request.args)
+
+Flask Context
+--------------
+http://flask.pocoo.org/docs/0.11/reqcontext/
+
+If you look into how the Flask WSGI application internally works, you will find a piece of code that looks very much like this:
+
+def wsgi_app(self, environ):
+    with self.request_context(environ):
+        try:
+            response = self.full_dispatch_request()
+        except Exception as e:
+            response = self.make_response(self.handle_exception(e))
+        return response(environ, start_response)
+
+The method request_context() returns a new RequestContext object and uses it in combination with the with statement to bind the context. Everything that is called from the same thread from this point onwards until the end of the with statement will have access to the request globals (flask.request and others).
+
+The request context internally works like a stack: The topmost level on the stack is the current active request. push() adds the context to the stack on the very top, pop() removes it from the stack again. On popping the application’s teardown_request() functions are also executed.
+
+Another thing of note is that the request context will automatically also create an application context when it’s pushed and there is no application context for that application so far.

@@ -59,17 +59,7 @@ def api_slippymaps_maplayer():
     WIDTH = request.args.get('WIDTH')
     HEIGHT = request.args.get('HEIGHT')
     BBOX = request.args.get('BBOX')
-
-    print('@@@@@@@@@ HOW MANY?????????')
-    print('@@@@@@@@@ SERVICE: ', SERVICE)
-    print('@@@@@@@@@ BBOX: ', BBOX)
     BBOX = BBOX.split(',')
-    print('@@@@@@@@@ BBOX AFTER SPLIT: ', BBOX)
-    print('@@@@@@@@@ BBOX[0]: ', BBOX[0])
-    print('@@@@@@@@@ BBOX[1]: ', BBOX[1])
-    print('@@@@@@@@@ BBOX[2]: ', BBOX[2])
-    print('@@@@@@@@@ BBOX[3]: ', BBOX[3])
-    print('@@@@@@@@@ COMMAND: ', COMMAND)
 
     # pyferret.run('go ' + envScript)
     # pyferret.run('use levitus_climatology')
@@ -100,7 +90,8 @@ def api_slippymaps_maplayer():
 
 @app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
-    return render_template('slippymaps.html')
+    nbMaps=2
+    return render_template('dummy.html', nbMaps=nbMaps)
              
 #==============================================================
 def number_of_workers():
