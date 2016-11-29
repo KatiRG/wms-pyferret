@@ -20,13 +20,24 @@ import itertools
 from PIL import Image
 
 from flask import Flask, render_template, make_response, request, Response
+# from app import index_add_counter
 
 #==============================================================
 # Define flask app
 app = Flask(__name__)
+
+class SomeObj():
+    def __init__(self, param):
+        self.param = param
+    def query(self):
+        self.param += 1
+        return self.param
+
+global_obj = SomeObj(0)
+print("^^^^^^^^^^^^ global_obj here: ", global_obj)
+
 @app.route('/')
 def index():
-    # return 'Hello world'
     return render_template('index.html', message='')
 
 @app.route('/', methods = ['GET', 'POST'])
@@ -51,19 +62,24 @@ def formhandler():
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
-    mapcount = 2
-
+    mapcount = global_obj.query()
+    print("^^^^^^^^^^^mapcount: ", mapcount)
+    
     if request.method == 'POST':
         print("request.form: ", request.form)
         mapcount = mapcount + 1
+        print("mapcount in post method: ", mapcount)
+        mapcount = mapcount + 1
+        print("mapcount in post after cumul: ", mapcount)
+
         print("mapcount: ", mapcount)
         fervar = request.form['fervar']
         print("fervar: ", fervar)
 
         return render_template('slippymaps.html', mapcount=mapcount)
 
-
     elif request.method == 'GET':
+    # if request.method == 'GET':   
         try:
 
             # environ commands from original script
