@@ -89,7 +89,7 @@ def api_slippymaps_maplayer():
     
 
 @app.route('/dummy', methods = ['GET', 'POST'])
-def slippymaps():
+def dummy():
     nbMaps=2
     return render_template('dummy.html', nbMaps=nbMaps)
              
