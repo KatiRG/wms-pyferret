@@ -51,8 +51,17 @@ def formhandler():
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
+    mapcount = 2
+
     if request.method == 'POST':
         print("request.form: ", request.form)
+        mapcount = mapcount + 1
+        print("mapcount: ", mapcount)
+        fervar = request.form['fervar']
+        print("fervar: ", fervar)
+
+        return render_template('slippymaps.html', mapcount=mapcount)
+
 
     elif request.method == 'GET':
         try:
@@ -105,7 +114,8 @@ def api_slippymaps_maplayer():
             VLIM = '/vlim=' + str(BBOX[1]) + ':' + str(BBOX[3])
             
             # need to cycle through 6 BBOX coords
-            # bboxArray = [ [-90, 0, 0, 90], [0, 0, 90, 90], [-180, 0, -90, 90], [-90, -90, 0, 0], [0, -90, 90, 0], [-180, -90, -90, 0] ]
+            # bboxArray = [ [-90, 0, 0, 90], [0, 0, 90, 90], [-180, 0, -90, 90], [-90, -90, 0, 0], 
+            # [0, -90, 90, 0], [-180, -90, -90, 0] ]
 
             # pyferret.run('use levitus_climatology') #to load a second dataset, then use d=2 in command line
             #shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno temp[k=@min, d=1]
@@ -125,7 +135,7 @@ def api_slippymaps_maplayer():
             
             resp = Response(iter(img), status=200, mimetype='image/png')
             return resp
-            
+
         except:
             return iter('Exception caught')    
     
@@ -178,7 +188,7 @@ def api_slippymaps_colorbar():
 
 @app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
-    return render_template('slippymaps.html')
+    return render_template('slippymaps.html', mapcount='')
 
     
 

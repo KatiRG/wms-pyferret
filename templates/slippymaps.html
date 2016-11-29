@@ -48,11 +48,21 @@
 		</div>
 
 		<form action = "/slippymaps_maplayer" method = "POST">			
-			<input type="text" name="scenario" value="mapvar"> ferret variable <br>
-	        <input type="text" name="scenario" value="ferretcmd"> ferret command
+			<input type="text" name="fervar" value="mapvar"> ferret variable <br>
+	        <input type="text" name="fercmd" value="ferretcmd"> ferret command
 	        <br><br>
 	        <input type="submit" value="Submit" />
 	  	</form>
+
+	  	<!-- Add additional maps if requested by user -->
+	  	{% if mapcount %}
+	  		<p> mapcount {{ mapcount }} </p>
+		  	<div class='mapContainer'>
+			   <div id='title{{ mapcount }}' class='title'></div>
+			   <div id='map{{ mapcount }}' class='map'></div>
+			   <div id='key{{ mapcount }}' class='key'><img /></div>
+			</div>
+		{% endif %}
 
 		<script type='text/javascript'>
 
