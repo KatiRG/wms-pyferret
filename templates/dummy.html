@@ -30,18 +30,37 @@
 		{% for n in range(nbMaps) %}
 		    <!-- <p> number {{ n }} </p> -->
 		    <div class='mapContainer'>
-			   <div id='title{{ n }}' class='title'></div>
+			   <div id='title{{ n }}' class='title'>TITLE {{n}}</div>
 			   <div id='map{{ n }}' class='map'></div>
 			   <div id='key{{ n }}' class='key'><img /></div>
 			</div>
 		{% endfor %}
 
 		<form action = "/dummy" method = "POST">			
-			<input type="text" name="scenario" value="mapvar"> ferret variable <br>
-	        <input type="text" name="scenario" value="ferretcmd"> ferret command
+			<input type="text" name="nummaps" > number of maps to add <br>
+			<input type="text" name="mapvar" > ferret variable <br>
+	        <input type="text" name="ferretcmd"> ferret command
 	        <br><br>
 	        <input type="submit" value="Submit" />
 	  	</form>
+
+	  	<br>
+
+	 	{% if nummaps: %}
+	 		<p> {{ nummaps }} maps added below:</p>
+	 	 	
+	 	 	{% for n in range(nbMaps, nummaps + nbMaps) %}
+			 	<p> n: {{ n }} </p>
+			 	<div id='title{{ n }}' class='title'>TITLE {{n}}</div>
+			   	<div id='map{{ n }}' class='map'></div>
+			   	<div id='key{{ n }}' class='key'><img /></div>
+			{% endfor %}
+
+	 		
+	 	{% else %}
+	 		<p> No maps to add. </p>
+	  	{% endif %}
+	 
 
 	  	<br><br>
 

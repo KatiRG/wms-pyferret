@@ -51,7 +51,10 @@ def formhandler():
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
-    if request.method == 'GET':
+    if request.method == 'POST':
+        print("************ request.form in slippymaps_maplayer: ", request.form)
+
+    elif request.method == 'GET':
         print("request.method in slippymaps_maplayer: ", request.method)
 
         # http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetMap&LAYERS=&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&COMMAND=shade%2Fx%3D-180%3A180%2Fy%3D-90%3A90%2Flev%3D20v%2Fpal%3Dmpl_PSU_inferno&VARIABLE=temp%5Bk%3D%40max%5D&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-90,0,0,90
@@ -98,10 +101,13 @@ def api_slippymaps_maplayer():
 @app.route('/dummy', methods = ['GET', 'POST'])
 def dummy():
     nbMaps=2
+
     if request.method == 'POST':
-        print("request.form: ", request.form)
-        # print("request.form[submit]: ", request.form['submit'])
-    return render_template('dummy.html', nbMaps=nbMaps)
+        print("######################### request.form in /dummy: ", request.form)
+        nummaps = int(request.form['nummaps'])
+        return render_template('dummy.html', nbMaps=nbMaps, nummaps=nummaps)
+        print("nummaps: ", nummaps)
+    return render_template('dummy.html', nbMaps=nbMaps, nummaps='')
              
 #==============================================================
 def number_of_workers():
