@@ -34,11 +34,10 @@
 			<div id='map1' class='map'></div>
 
 			<!-- COLORBAR -->
-			<!-- <div id='key1' class='key'><img /></div> -->
-			<div id='key1' class='key'>
-				<img src="http://localhost:8000/slippymaps_colorbar">
-			
-			</div>
+			<div id='key1' class='key'><img /></div>
+			<!-- <div id='key1' class='key'> -->
+				<!-- <img src="http://localhost:8000/slippymaps_colorbar">			 -->
+			<!-- </div> -->
 		</div>
 
 		<div class='mapContainer'>
@@ -148,6 +147,8 @@
 			title1 = getTitle(wmspyferret[1].wmsParams.command, wmspyferret[1].wmsParams.variable.replace('%2B','+'));
 			$('#title1').html(title1);
 			$('#title1').attr('title', wmspyferret[1].wmsParams.command + ' ' + wmspyferret[1].wmsParams.variable.replace('%2B','+'));
+			// $('#key1').children('img').attr('src', 'http://localhost:8000/slippymaps_colorbar')
+
 			// $('#key1').children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
 						// '&COMMAND=' + wmspyferret[1].wmsParams.command +
 						// '&VARIABLE=' + wmspyferret[1].wmsParams.variable.replace('+','%2B'));
