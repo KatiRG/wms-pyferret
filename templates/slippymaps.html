@@ -47,21 +47,24 @@
 		   <div id='key2' class='key'><img /></div>
 		</div>
 
-		<form action = "/slippymaps_maplayer" method = "POST">			
-			<input type="text" name="fervar" value="mapvar"> ferret variable <br>
-	        <input type="text" name="fercmd" value="ferretcmd"> ferret command
+		<form action = "/slippymaps_maplayer" method = "POST">
+			<input type="text" name="nummaps"> number of maps to add <br>
+			<input type="text" name="mapvar"> ferret variable <br>
+	        <input type="text" name="ferretcmd"> ferret command
 	        <br><br>
 	        <input type="submit" value="Submit" />
 	  	</form>
 
 	  	<!-- Add additional maps if requested by user -->
-	  	{% if mapcount %}
-	  		<p> mapcount {{ mapcount }} </p>
-		  	<div class='mapContainer'>
-			   <div id='title{{ mapcount }}' class='title'></div>
-			   <div id='map{{ mapcount }}' class='map'></div>
-			   <div id='key{{ mapcount }}' class='key'><img /></div>
-			</div>
+	  	{% if nummaps %}
+	  		<p> {{ nummaps }} added below:</p>
+	  		{% for n in range(nbMaps, nummaps + nbMaps) %}
+			  	<div class='mapContainer'>
+				   <div id='title{{ n }}' class='title'>TITLE {{n}}</div>
+				   <div id='map{{ n }}' class='map'></div>
+				   <div id='key{{ n }}' class='key'><img /></div>
+				</div>
+			{% endfor %}
 		{% endif %}
 
 		<script type='text/javascript'>
@@ -99,7 +102,7 @@
 			});
 
 			//===============================================
-			wmspyferret[2] = L.tileLayer.wms('http://localhost:8000', {
+			wmspyferret[2] = L.tileLayer.wms('http://localhost:8000/slippymaps_maplayer', {
 				command: 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_Seq1_RdPu',
 				variable: 'salt[k=@var]',
 			    	crs: crs,

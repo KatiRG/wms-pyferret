@@ -62,24 +62,16 @@ def formhandler():
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
-    mapcount = global_obj.query()
-    print("^^^^^^^^^^^mapcount: ", mapcount)
     
     if request.method == 'POST':
-        print("request.form: ", request.form)
-        mapcount = mapcount + 1
-        print("mapcount in post method: ", mapcount)
-        mapcount = mapcount + 1
-        print("mapcount in post after cumul: ", mapcount)
+        nummaps = int(request.form['nummaps'])
+        print("########### global nbMaps: ", nbMaps)
+        print("########### nummaps: ", nummaps)
 
-        print("mapcount: ", mapcount)
-        fervar = request.form['fervar']
-        print("fervar: ", fervar)
-
-        return render_template('slippymaps.html', mapcount=mapcount)
+        return render_template('slippymaps.html', nbMaps=nbMaps, nummaps=nummaps)
 
     elif request.method == 'GET':
-    # if request.method == 'GET':   
+    # if request.method == 'GET':
         try:
 
             # environ commands from original script
@@ -105,8 +97,7 @@ def api_slippymaps_maplayer():
             # BBOX=-90,0,0,90
 
 
-            pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
-            print("************* run envScript: ", pyferret.run('go ' + envScript) )
+            pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)           
             pyferret.run('use levitus_climatology')
             
             tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
@@ -121,8 +112,7 @@ def api_slippymaps_maplayer():
             # BBOX = environ['BBOX']
             BBOX = request.args.get('BBOX')
             BBOX = BBOX.split(',')
-            print("&&&&&&&&&&&&&&& BBOX: ", BBOX)
-
+        
             WIDTH = int(request.args.get('WIDTH'))
             HEIGHT = int(request.args.get('HEIGHT'))
 
@@ -142,10 +132,9 @@ def api_slippymaps_maplayer():
             pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
             # pyferret.run('frame/format=PNG/transparent/ypixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
-            if os.path.isfile(tmpdir + '/' + tmpname):        
+            if os.path.isfile(tmpdir + '/' + tmpname):
                 ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                img = ftmp.read()
-                print("*****************len(img): ", len(img))
+                img = ftmp.read()               
                 ftmp.close()
                 os.remove(tmpdir + '/' + tmpname)
             
@@ -189,11 +178,9 @@ def api_slippymaps_colorbar():
     area.save(tmpdir + '/' + tmpname, "PNG")           
 
 
-    if os.path.isfile(tmpdir + '/' + tmpname):
-        print("***************true")
+    if os.path.isfile(tmpdir + '/' + tmpname):       
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
-        img = ftmp.read()
-        print("*****************len(img): ", len(img))
+        img = ftmp.read()        
         ftmp.close()
         os.remove(tmpdir + '/' + tmpname)
     else:
@@ -202,9 +189,12 @@ def api_slippymaps_colorbar():
     resp = Response(iter(img), status=200, mimetype='image/png')    
     return resp    
 
+nbMaps = 0
 @app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
-    return render_template('slippymaps.html', mapcount='')
+    global nbMaps
+    nbMaps = 2
+    return render_template('slippymaps.html', nbMaps=nbMaps, nummaps='')
 
     
 
