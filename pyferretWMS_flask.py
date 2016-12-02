@@ -61,18 +61,22 @@ def formhandler():
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
+    nbMaps = 2 #fixed number of maps already on the screen
 
-    
-    if request.method == 'POST':
+    if request.method == 'POST':        
         nummaps = int(request.form['nummaps'])
         print("########### global nbMaps: ", nbMaps)
         print("########### nummaps: ", nummaps)
+        listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+nummaps+1), 2))
+        print("############# listSynchroMapsToSet in POST: ", listSynchroMapsToSet)
 
-        return render_template('slippymaps.html', nbMaps=nbMaps, nummaps=nummaps)
+        return render_template('slippymaps.html', listSynchroMapsToSet=listSynchroMapsToSet, nbMaps=nbMaps, nummaps=nummaps)
 
     elif request.method == 'GET':
     # if request.method == 'GET':
         try:
+
+            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
             # environ commands from original script
             # MultiDict([('SERVICE', 'WMS'), ('REQUEST', 'GetMap'), ('LAYERS', ''), ('STYLES', ''), 
@@ -189,12 +193,14 @@ def api_slippymaps_colorbar():
     resp = Response(iter(img), status=200, mimetype='image/png')    
     return resp    
 
-nbMaps = 0
 @app.route('/slippymaps', methods = ['GET', 'POST'])
 def slippymaps():
-    global nbMaps
+    # global nbMaps
     nbMaps = 2
-    return render_template('slippymaps.html', nbMaps=nbMaps, nummaps='')
+    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+    print("############# listSynchroMapsToSet: ", listSynchroMapsToSet)
+
+    return render_template('slippymaps.html', listSynchroMapsToSet=listSynchroMapsToSet, nbMaps=nbMaps, nummaps='')
 
     
 
