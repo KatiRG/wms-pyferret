@@ -51,37 +51,53 @@ def formhandler():
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
+
     if request.method == 'POST':
         print("************ request.form in slippymaps_maplayer: ", request.form)
 
     elif request.method == 'GET':
+        
+        if request.args.get('SERVICE') != 'WMS':
+                raise
+
         print("request.method in slippymaps_maplayer: ", request.method)
+        print("REQUEST: ", request.args.get('REQUEST'))
 
-        # http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetMap&LAYERS=&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&COMMAND=shade%2Fx%3D-180%3A180%2Fy%3D-90%3A90%2Flev%3D20v%2Fpal%3Dmpl_PSU_inferno&VARIABLE=temp%5Bk%3D%40max%5D&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-90,0,0,90
-
-        SERVICE = request.args.get('SERVICE') # WMS
-        req_bbox = request.args.get('BBOX') 
         COMMAND = request.args.get('COMMAND')
         VARIABLE = request.args.get('VARIABLE')
-        WIDTH = request.args.get('WIDTH')
-        HEIGHT = request.args.get('HEIGHT')
-        BBOX = request.args.get('BBOX')
-        BBOX = BBOX.split(',')
 
-        # pyferret.run('go ' + envScript)
-        # pyferret.run('use levitus_climatology')
-        
         tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
         tmpname = os.path.basename(tmpname)
 
-        HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-        VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
-        
-        # pyferret.run('set window/aspect=1/outline=5')
-        # pyferret.run('go margins 3 0 0 0')
+        # http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetMap&LAYERS=&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&COMMAND=shade%2Fx%3D-180%3A180%2Fy%3D-90%3A90%2Flev%3D20v%2Fpal%3Dmpl_PSU_inferno&VARIABLE=temp%5Bk%3D%40max%5D&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-90,0,0,90
 
-        # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-        # pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
+        if request.args.get('REQUEST') == 'GetColorBar':
+            print("IT'S A !!!!! ", request.args.get('REQUEST'))
+            print("GetColorBar COMMAND: ", COMMAND)
+            print("GetColorBar VARIABLE: ", VARIABLE)
+
+
+        elif request.args.get('REQUEST') == 'GetMap':
+            print("GetMap COMMAND: ", COMMAND)
+            print("GetMap VARIABLE: ", VARIABLE)
+
+            WIDTH = request.args.get('WIDTH')
+            HEIGHT = request.args.get('HEIGHT')
+            BBOX = request.args.get('BBOX')
+            BBOX = BBOX.split(',')
+
+            # pyferret.run('go ' + envScript)
+            # pyferret.run('use levitus_climatology')
+            
+            
+            HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
+            VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
+            
+            # pyferret.run('set window/aspect=1/outline=5')
+            # pyferret.run('go margins 3 0 0 0')
+
+            # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+            # pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
 
         if os.path.isfile(tmpdir + '/' + tmpname):
@@ -94,8 +110,9 @@ def api_slippymaps_maplayer():
         resp = Response(iter(img), status=200, mimetype='image/png')
         return resp
 
-    elif request.method == 'POST':
-        print("request.method in slippymaps_maplayer: ", request.method)    
+
+
+      
     
 
 @app.route('/dummy', methods = ['GET', 'POST'])

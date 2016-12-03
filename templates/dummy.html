@@ -122,10 +122,11 @@
 			{% for n in range(nbMaps) -%}
 				title{{ n }} = getTitle(wmspyferret[{{ n }}].wmsParams.command, wmspyferret[{{ n }}].wmsParams.variable.replace('%2B','+'));
 				$('#title{{ n }}').html(title{{ n }});   
-				$('#title{{ n }}').attr('title', wmspyferret[{{ n }}].wmsParams.command + ' ' + wmspyferret[{{ n }}].wmsParams.variable.replace('%2B','+'));   
-				// $('#key{{ n }}').children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
-				// 							'&COMMAND=' + wmspyferret[{{ n }}].wmsParams.command +
-				// 							'&VARIABLE=' + wmspyferret[{{ n }}].wmsParams.variable.replace('+','%2B'));
+				$('#title{{ n }}').attr('title', wmspyferret[{{ n }}].wmsParams.command + ' ' + wmspyferret[{{ n }}].wmsParams.variable.replace('%2B','+'));   				
+				$('#key{{ n }}').children('img').attr('src', 'http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetColorBar' +
+											'&COMMAND=' + wmspyferret[{{ n }}].wmsParams.command +
+											'&VARIABLE=' + wmspyferret[{{ n }}].wmsParams.variable.replace('+','%2B'));
+
 			{% endfor %}
 
 		</script>
