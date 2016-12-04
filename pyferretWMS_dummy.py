@@ -47,15 +47,24 @@ def formhandler():
     return render_template('index.html', message=message, 
         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
 
+# @app.route('/add', methods=['POST'])
+# def add_map():
+
+#     print("************ request.form add_map: ", request.form)
+#     print("cmdArray IN POST: ", cmdArray)
+
+    # return redirect(url_for('dummy'))
+
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
 def api_slippymaps_maplayer():
 
-
     if request.method == 'POST':
         print("************ request.form in slippymaps_maplayer: ", request.form)
+        print("************ cmdArray IN POST: ", cmdArray)
 
     elif request.method == 'GET':
+    # if request.method == 'GET':
         
         if request.args.get('SERVICE') != 'WMS':
                 raise
@@ -65,6 +74,17 @@ def api_slippymaps_maplayer():
 
         COMMAND = request.args.get('COMMAND')
         VARIABLE = request.args.get('VARIABLE')
+
+
+        global cmdArray
+        cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
+        print("cmdArray: ", cmdArray)
+
+        cmds = cmdsRequested.split(';')     # get individual commands
+        cmds = map(str.strip, cmds)         # remove surrounding spaces if present
+        
+        nbMaps = len(cmds)
+        print(str(nbMaps) + ' maps to draw')
 
         tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
         tmpname = os.path.basename(tmpname)
@@ -80,6 +100,10 @@ def api_slippymaps_maplayer():
         elif request.args.get('REQUEST') == 'GetMap':
             print("GetMap COMMAND: ", COMMAND)
             print("GetMap VARIABLE: ", VARIABLE)
+
+            global cmdArray
+            cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
+            print("cmdArray: ", cmdArray)
 
             WIDTH = request.args.get('WIDTH')
             HEIGHT = request.args.get('HEIGHT')
@@ -111,19 +135,15 @@ def api_slippymaps_maplayer():
         return resp
 
 
-
-      
-    
-
 @app.route('/dummy', methods = ['GET', 'POST'])
 def dummy():
     nbMaps=2
 
-    if request.method == 'POST':
-        print("######################### request.form in /dummy: ", request.form)
-        nummaps = int(request.form['nummaps'])
-        return render_template('dummy.html', nbMaps=nbMaps, nummaps=nummaps)
-        print("nummaps: ", nummaps)
+    # if request.method == 'POST':
+    #     print("######################### request.form in /dummy: ", request.form)
+    #     nummaps = int(request.form['nummaps'])
+    #     return render_template('dummy.html', nbMaps=nbMaps, nummaps=nummaps)
+    #     print("nummaps: ", nummaps)
     return render_template('dummy.html', nbMaps=nbMaps, nummaps='')
              
 #==============================================================
