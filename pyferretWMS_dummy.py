@@ -61,7 +61,13 @@ def api_slippymaps_maplayer():
 
     if request.method == 'POST':
         print("************ request.form in slippymaps_maplayer: ", request.form)
+        COMMAND = request.form['ferretcmd']
+        VARIABLE = request.form['mapvar']
+
+        cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
         print("************ cmdArray IN POST: ", cmdArray)
+
+        return render_template('dummy2.html', cmdArray=cmdArray)
 
     elif request.method == 'GET':
     # if request.method == 'GET':
@@ -76,15 +82,9 @@ def api_slippymaps_maplayer():
         VARIABLE = request.args.get('VARIABLE')
 
 
-        global cmdArray
-        cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
-        print("cmdArray: ", cmdArray)
-
-        cmds = cmdsRequested.split(';')     # get individual commands
-        cmds = map(str.strip, cmds)         # remove surrounding spaces if present
-        
-        nbMaps = len(cmds)
-        print(str(nbMaps) + ' maps to draw')
+        # global cmdArray
+        # cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
+        # print("cmdArray: ", cmdArray)
 
         tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
         tmpname = os.path.basename(tmpname)
@@ -96,14 +96,16 @@ def api_slippymaps_maplayer():
             print("GetColorBar COMMAND: ", COMMAND)
             print("GetColorBar VARIABLE: ", VARIABLE)
 
+            # # global cmdArray
+            # cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
+            # print("******** cmdArray: ", cmdArray)
+
 
         elif request.args.get('REQUEST') == 'GetMap':
             print("GetMap COMMAND: ", COMMAND)
             print("GetMap VARIABLE: ", VARIABLE)
 
-            global cmdArray
-            cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
-            print("cmdArray: ", cmdArray)
+            
 
             WIDTH = request.args.get('WIDTH')
             HEIGHT = request.args.get('HEIGHT')
@@ -135,7 +137,7 @@ def api_slippymaps_maplayer():
         return resp
 
 
-@app.route('/dummy', methods = ['GET', 'POST'])
+@app.route('/dummy2', methods = ['GET', 'POST'])
 def dummy():
     nbMaps=2
 
@@ -144,7 +146,7 @@ def dummy():
     #     nummaps = int(request.form['nummaps'])
     #     return render_template('dummy.html', nbMaps=nbMaps, nummaps=nummaps)
     #     print("nummaps: ", nummaps)
-    return render_template('dummy.html', nbMaps=nbMaps, nummaps='')
+    return render_template('dummy2.html', nbMaps=nbMaps, nummaps='')
              
 #==============================================================
 def number_of_workers():
