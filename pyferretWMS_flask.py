@@ -36,11 +36,11 @@ class SomeObj():
 global_obj = SomeObj(0)
 print("^^^^^^^^^^^^ global_obj here: ", global_obj)
 
-@app.route('/')
+@app.route('/test')
 def index():
     return render_template('index.html', message='')
 
-@app.route('/', methods = ['GET', 'POST'])
+@app.route('/test', methods = ['GET', 'POST'])
 def formhandler():
     scenario = request.form['scenario']
     message = "Showing maps for scenario " + scenario.replace('_','.') + ":"
