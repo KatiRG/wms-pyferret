@@ -34,65 +34,28 @@
 			<input type="text" name="mapvar"> ferret variable (e.g. temp[k=@max])<br>
 	        <input type="text" name="ferretcmd"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)
 	        <br><br>
+	        <!-- <input onclick="add()" type="submit" value="Submit" /> -->
 	        <input type="submit" value="Submit" />
-	  	</form>
+	  	</form> 
+	  	
 
-	  
-  		
-		<script type='text/javascript'>
+	  	<script type="text/javascript">
+	  // 		// https://www.sitepoint.com/community/t/increment-variable-value-on-button-click/3557/2
+			// var capnum = 0;
+			// function add(){
+			//      capnum++;
+			//      document.getElementById('display').innerHTML = capnum;
+			// }
 
-			//===============================================
-			var crs = L.CRS.EPSG4326;
+			// console.log("capnum: ", capnum)
+			// if ( capnum != 0 ) {
+			// 	console.log("capnum here: ", capnum)
+			// 	// console.log("mapvar: ", {{ variable }})
+			// }
 
-			var map = [];
-			var wmspyferret = [];
-			var frontiers= [];
-
-			//===============================================
-			// wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resources', {
-			// 	command: '{{ command }}',
-			// 	variable: '{{ variable }}',
-			//     	crs: crs,
-			// 	format: 'image/png',
-			// 	transparent: true,
-			//     	uppercase: true
-			// });
-
-			// frontiers[0] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
-			// 	layers: 'GCA:GCA_frontiersCountryAndRegions',
-			// 	format: 'image/png',
-			//     	crs: crs,
-			// 	transparent: true
-			// });
-
-			// map[0] = L.map('map0', {
-			//     layers: [wmspyferret[0], frontiers[0]],
-			//     crs: crs,
-			//     center: [0,-40],
-			//     zoom: 1,
-			//     attributionControl: false
-			// });
-
-			//===============================================
-			// Set up synchro between maps
-			// {% for synchro in listSynchroMapsToSet %}				
-			// 	map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
-			// {% endfor %}
-
-			//===============================================
-			function getTitle(aCommand, aVariable) {
-				// Inspect command to get /title qualifier if present
-				m = aCommand.match(/title=([\w&]+)/);		// equivalent to search in python
-				if (m != null)
-					title = m[1]
-				else 
-					title = aVariable 
-				return title
-			}
-
-			//===============================================
-			
 		</script>
+		<!-- <div id="display"><script type="text/javascript">document.write("count " + capnum);</script></div> -->
+		
 
 
   	</div> <!-- ./container --> 

@@ -19,7 +19,7 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request, Response, session
+from flask import Flask, render_template, make_response, request, Response, session, g
 # from app import index_add_counter
 
 #==============================================================
@@ -36,9 +36,10 @@ class SomeObj():
 global_obj = SomeObj(0)
 print("^^^^^^^^^^^^ global_obj here: ", global_obj)
 
-# @app.route('/test')
-# def index():
-#     return render_template('index.html', message='')
+
+@app.route('/test')
+def test_index():
+    return render_template('index.html', message='')
 
 # @app.route('/test', methods = ['GET', 'POST'])
 # def formhandler():
@@ -60,25 +61,34 @@ print("^^^^^^^^^^^^ global_obj here: ", global_obj)
 
 @app.route('/')
 def index():
-    return render_template('mapform.html')
+    return render_template('mapform.html', command='', variable='')
 
-@app.route('/', methods = ['POST'])
+dataset=''
+@app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
+    print("request method: ", request.method)
+    print("request.args: ", request.args)
+
+    global dataset
     dataset = str(request.form['dataset'])
-    variable = request.form['mapvar']
+    variable = str(request.form['mapvar'])
     command = request.form['ferretcmd']
+
+    # http://stackoverflow.com/questions/34321978/interpret-an-html-form-value-as-a-list-in-a-flask-view
 
     print("dataset: ", dataset)
     print("variable: ", variable)
     print('command: ', command)
 
-    pyferret.run('use ' + dataset)
+    # pyferret.run('use ' + dataset)
 
-    return render_template('showmaps.html', command=command, variable=variable)
+    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset)
+    # return render_template('mapform.html', command=command, variable=variable)
 
-@app.route('/showmaps_resource', methods=['GET'])
+@app.route('/showmaps_resource', methods=['POST','GET'])
 def api_calcmaps():
+    print("############### request method: ", request.method)
     print("############### IN CALCMAP!!!")
     print("request.args: ", request.args)
 
@@ -88,14 +98,18 @@ def api_calcmaps():
     # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
     # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
 
+    
+    DSET = str(request.args.get('DSET'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
+    print("############### DSET: ", DSET)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
 
     # pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)           
-    pyferret.run('use levitus_climatology')
+    # pyferret.run('use levitus_climatology')
+    pyferret.run('use ' + DSET)
 
     if request.args.get('REQUEST') == 'GetColorBar':                
                 print("GetColorBar COMMAND: ", COMMAND)

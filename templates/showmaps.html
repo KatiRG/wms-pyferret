@@ -27,7 +27,7 @@
 			<input id="commandLine" type="text" placeholder="New command">
 		</div>
 
-
+		
 		<!-- Request form to add map -->
 		<form action = "/" method = "POST">
 			<input type="text" name="dataset"> dataset (e.g. levitus_climatology) <br>
@@ -36,6 +36,7 @@
 	        <br><br>
 	        <input type="submit" value="Submit" />
 	  	</form>
+	  	<br><br><br>
 
 	  	<!-- Add map requested by user in form -->
 	  	<div class='mapContainer'>
@@ -43,6 +44,8 @@
 		   <div id='map0' class='map'></div>
 		   <div id='key0' class='key'><img /></div>
 		</div>
+
+		<p>dataset: {{dataset}}</p>
   		
 		<script type='text/javascript'>
 
@@ -54,7 +57,7 @@
 			var frontiers= [];
 
 			//===============================================
-			wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resource', {
+			wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}', {
 				command: '{{ command }}',
 				variable: '{{ variable }}',
 			    	crs: crs,
@@ -99,9 +102,15 @@
 			// title0 = getTitle(wmspyferret[0].wmsParams.command, wmspyferret[0].wmsParams.variable.replace('%2B','+'));
 			// $('#title0').html(title1);
 			// $('#title0').attr('title', wmspyferret[0].wmsParams.command + ' ' + wmspyferret[0].wmsParams.variable.replace('%2B','+'));   
-			$('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?SERVICE=WMS&REQUEST=GetColorBar' +
-						'&COMMAND=' + wmspyferret[0].wmsParams.command +
-						'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
+			// $('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?SERVICE=WMS&REQUEST=GetColorBar' +
+			// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
+			// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
+
+			$('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&SERVICE=WMS&REQUEST=GetColorBar' +
+									'&COMMAND=' + wmspyferret[0].wmsParams.command +
+									'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
+
+						
 
 			
 		</script>
