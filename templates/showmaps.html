@@ -32,7 +32,8 @@
 		<form action = "/" method = "POST">
 			<input type="text" name="dataset"> dataset (e.g. levitus_climatology) <br>
 			<input type="text" name="mapvar"> ferret variable (e.g. temp[k=@max])<br>
-	        <input type="text" name="ferretcmd"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)
+	        <input type="text" name="ferretcmd"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
+	        <input type="text" name="postvar"> OPTIONAL: post-variable arguments (e.g. nav_lon, nav_lat)
 	        <br><br>
 	        <input type="submit" value="Submit" />
 	  	</form>
@@ -57,7 +58,7 @@
 			var frontiers= [];
 
 			//===============================================
-			wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}', {
+			wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}', {
 				command: '{{ command }}',
 				variable: '{{ variable }}',
 			    	crs: crs,
@@ -106,7 +107,7 @@
 			// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
 			// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
-			$('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&SERVICE=WMS&REQUEST=GetColorBar' +
+			$('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 									'&COMMAND=' + wmspyferret[0].wmsParams.command +
 									'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 

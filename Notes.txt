@@ -32,6 +32,32 @@ https://blog.miguelgrinberg.com/post/customizing-the-flask-response-class
 bottle + gunicorn:
 http://blog.yprez.com/running-a-bottle-app-with-gunicorn.html
 
+Ferret datasets + commands examples
+------------------------------------
+etopo20 dset in FER_DIR:
+~~~~~~~~~~~~~~~~~~~~~~~~
+yes? use etopo20
+yes? rose
+yes? shade/x=-180:180/y=-90:90/lev=20v/pal=light_centered
+OR   shade/x=-180:180/y=-90:90/lev=20v/levels=(-inf)(-5000,5000,500)(inf)/pal=light_centered
+OR   shade/x=-180:180/y=-90:90/lev=20v/levels=(-8000,8000,500)
+OR   shade/x=-180:180/y=-90:90/lev=20v/levels=(-8000,8000,500) dMn, nav_lon,nav_lat
+
+
+Marco's manganese dset:
+~~~~~~~~~~~~~~~~~~~~~~~
+yes? use Mn...
+yes? set window/aspect=.7
+yes? shade dMn[z=0, l=10, d=DSET]
+OR VARIABLE POC, PO4, ..., dMn, ...
+yes? shade/lev=20v/pal=light_centered
+OR   shade/modulo/lev=20v/pal=light_centered  #use modulo to remove weird end artifact
+                          pal=light_gray
+                          pal=rainbow
+
+Quick hack to remove the land:
+VARIABLE= dMn[z=0, l=1]*dMn[z=0, l=1]/dMn[z=0, l=1]
+
 Ars:
 ----
 - Gunicorn is a server that can run applications. 

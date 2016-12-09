@@ -74,16 +74,18 @@ def map_formhandler():
     dataset = str(request.form['dataset'])
     variable = str(request.form['mapvar'])
     command = request.form['ferretcmd']
+    postvar = str(request.form['postvar'])
 
     # http://stackoverflow.com/questions/34321978/interpret-an-html-form-value-as-a-list-in-a-flask-view
 
     print("dataset: ", dataset)
     print("variable: ", variable)
     print('command: ', command)
+    print('postvar: ', postvar)
 
     # pyferret.run('use ' + dataset)
 
-    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset)
+    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset, postvar=postvar)
     # return render_template('mapform.html', command=command, variable=variable)
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
@@ -100,9 +102,11 @@ def api_calcmaps():
 
     
     DSET = str(request.args.get('DSET'))
+    POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
     print("############### DSET: ", DSET)
+    print("############### POSTVAR: ", POSTVAR)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
@@ -116,6 +120,7 @@ def api_calcmaps():
                 print("GetColorBar VARIABLE: ", VARIABLE)
 
                 pyferret.run('set window/aspect=1/outline=0')
+                # pyferret.run('set window/aspect=.7')
                 pyferret.run('go margins 2 4 3 3')
                 pyferret.run(COMMAND + '/set_up ' + VARIABLE)
                 pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
@@ -151,7 +156,16 @@ def api_calcmaps():
 
         pyferret.run('set window/aspect=1/outline=5')
         pyferret.run('go margins 0 0 0 0')    
-        pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)    
+        # 
+
+        if POSTVAR:
+            print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
+            # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',nav_lon,nav_lat')
+            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
+        else:
+            print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+        
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')                
 
     if os.path.isfile(tmpdir + '/' + tmpname):
