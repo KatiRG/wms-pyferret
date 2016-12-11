@@ -31,6 +31,13 @@ def session_management():
     # make the session last indefinitely until it is cleared
     session.permanent = True
 
+# http://code.runnable.com/Uhf58hcCo9RSAACs/using-sessions-in-flask-for-python
+def sumSessionCounter():
+    try:
+        session['counter'] += 1
+    except KeyError:
+        session['counter'] = 1    
+
 @app.route('/test')
 def test_index():
     return render_template('test.html', message='')    
@@ -38,12 +45,18 @@ def test_index():
 @app.route('/')
 def index():
     # reset the session data
-    session.clear()
-    session["foo"] = "Je m'en Foo"
+    # session.clear()
+    # session['objects']
+    # session["foo"] = "Je m'en Foo"
+
+    # Initialise the counter, or increment it
+    sumSessionCounter()
     return render_template('mapform.html', command='', variable='')
 
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
+
+
 
     print("request method: ", request.method)
     print("request.args: ", request.args)
@@ -59,11 +72,20 @@ def map_formhandler():
     print('command: ', command)
     print('postvar: ', postvar)
 
+    sumSessionCounter()
+    session['counter'] = session['counter'] + 1
+    print("################ COUNTER!!!!!!!!! ", session['counter'])
+
     # pyferret.run('use ' + dataset)
 
-    # retrieve "Foo" from the persistent session object
-    foo = session["foo"]
-    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, postvar=postvar, foo=foo)
+    
+    # session.clear()
+    # session['objects'].append(42)
+    # # so mark it as modified yourself
+    # session.modified = True
+    # print("############## session obj !!!!!!!!!!!!!!!: ", session['objects'])
+
+    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, postvar=postvar)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])

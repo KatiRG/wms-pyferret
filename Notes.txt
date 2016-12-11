@@ -181,3 +181,6 @@ http://connor-johnson.com/2016/01/22/using-sessions-in-flask/
 
 for secret key see:
 https://gist.github.com/rduplain/2173954
+
+sessions as counter objects:
+http://code.runnable.com/Uhf58hcCo9RSAACs/using-sessions-in-flask-for-python
