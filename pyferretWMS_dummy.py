@@ -36,7 +36,10 @@ def sumSessionCounter():
     try:
         session['counter'] += 1
     except KeyError:
-        session['counter'] = 1    
+        session['counter'] = 1
+
+def cart_session():
+    session['cart'] = {}        
 
 @app.route('/test')
 def test_index():
@@ -45,8 +48,7 @@ def test_index():
 @app.route('/')
 def index():
     # reset the session data
-    # session.clear()
-    # session['objects']
+    session.clear()
     # session["foo"] = "Je m'en Foo"
 
     # Initialise the counter, or increment it
@@ -71,12 +73,21 @@ def map_formhandler():
 
     sumSessionCounter()
     session['counter'] = session['counter'] + 1
-    junk[session['counter']] = session['counter']
+    
+    cart_session()
+    # session["cart"].append(dict({'product_id': dataset, 'qty': variable}))
+    # print("session[cart]: ", session["cart"])
+    if 'cart' in session:
+        print("CART IN SESSION: ", session['cart'])
+    else:
+        print("NEW CART!!!! ", session['cart'])
+    
+
     titlediv = 'title' + str(session['counter'])
     mapdiv = 'map' + str(session['counter'])
     keydiv = 'key' + str(session['counter'])
     print("################ COUNTER!!!!!!!!! ", session['counter'])
-    print("################ junk!!!!!!!!! ", junk)
+    
 
     # pyferret.run('use ' + dataset)
 
