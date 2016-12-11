@@ -19,134 +19,130 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request, Response, json, url_for, redirect
+from flask import Flask, render_template, make_response, request, Response, session, url_for, redirect
 
 #==============================================================
 # Define flask app
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
+
+@app.before_request
+def session_management():
+    # make the session last indefinitely until it is cleared
+    session.permanent = True
+
+@app.route('/test')
+def test_index():
+    return render_template('test.html', message='')    
+
 @app.route('/')
 def index():
-    # return 'Hello world'
-    return render_template('index.html', message='')
+    # reset the session data
+    session.clear()
+    session["foo"] = "Je m'en Foo"
+    return render_template('mapform.html', command='', variable='')
 
-@app.route('/', methods = ['GET', 'POST'])
-def formhandler():
-    scenario = request.form['scenario']
-    message = "Showing maps for scenario " + scenario.replace('_','.') + ":"
-    if scenario == "RCP2_6":
-        map1 = "Logo-compact.jpg"
-        map2 = "Logo-compact.jpg"
-        map3 = "Logo-compact.jpg"
-        map4 = "Logo-compact.jpg"
-    elif scenario == "RCP8_5":
-        map1 = "sst_rcp8.5.jpg"
-        map2 = "ph_rcp8.5.jpg"
-        map3 = "O2_rcp8.5.jpg"
-        map4 = "productivity_rcp8.5.jpg"
+@app.route('/', methods = ['POST', 'GET'])
+def map_formhandler():
 
-    return render_template('index.html', message=message, 
-        scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
+    print("request method: ", request.method)
+    print("request.args: ", request.args)
 
-# @app.route('/add', methods=['POST'])
-# def add_map():
+    global dataset
+    dataset = str(request.form['dataset'])
+    variable = str(request.form['mapvar'])
+    command = request.form['ferretcmd']
+    postvar = str(request.form['postvar'])
 
-#     print("************ request.form add_map: ", request.form)
-#     print("cmdArray IN POST: ", cmdArray)
+    print("dataset: ", dataset)
+    print("variable: ", variable)
+    print('command: ', command)
+    print('postvar: ', postvar)
 
-    # return redirect(url_for('dummy'))
+    # pyferret.run('use ' + dataset)
 
-# http://blog.luisrei.com/articles/flaskrest.html
-@app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
-def api_slippymaps_maplayer():
+    # retrieve "Foo" from the persistent session object
+    foo = session["foo"]
+    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, postvar=postvar, foo=foo)
 
-    if request.method == 'POST':
-        print("************ request.form in slippymaps_maplayer: ", request.form)
-        COMMAND = request.form['ferretcmd']
-        VARIABLE = request.form['mapvar']
 
-        cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
-        print("************ cmdArray IN POST: ", cmdArray)
+@app.route('/showmaps_resource', methods=['POST','GET'])
+def api_calcmaps():
+    print("############### request method: ", request.method)
+    print("############### IN CALCMAP!!!")
+    print("request.args: ", request.args)
 
-        return render_template('dummy2.html', cmdArray=cmdArray)
+    # ImmutableMultiDict([('LAYERS', u''), ('STYLES', u''), ('WIDTH', u'256'), 
+    # ('SERVICE', u'WMS'), ('FORMAT', u'image/png'), ('REQUEST', u'GetMap'), 
+    # ('HEIGHT', u'256'), ('SRS', u'EPSG:4326'), ('VERSION', u'1.1.1'), 
+    # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
+    # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
 
-    elif request.method == 'GET':
-    # if request.method == 'GET':
+    
+    DSET = str(request.args.get('DSET'))
+    POSTVAR = str(request.args.get('POSTVAR'))
+    COMMAND = str(request.args.get('COMMAND'))
+    VARIABLE = str(request.args.get('VARIABLE'))
+    print("############### DSET: ", DSET)
+    print("############### POSTVAR: ", POSTVAR)
+
+    tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
+    tmpname = os.path.basename(tmpname)
+
+    # pyferret.run('use ' + DSET)
+
+    if request.args.get('REQUEST') == 'GetColorBar':                
+                print("GetColorBar COMMAND: ", COMMAND)
+                print("GetColorBar VARIABLE: ", VARIABLE)
+
+                # pyferret.run('set window/aspect=1/outline=0')
+                # # pyferret.run('set window/aspect=.7')
+                # pyferret.run('go margins 2 4 3 3')
+                # pyferret.run(COMMAND + '/set_up ' + VARIABLE)
+                # pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+                # pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
+
+                # im = Image.open(tmpdir + '/key' + tmpname)
+                # box = (0, 325, 400, 375)
+                # area = im.crop(box)
+                # area.save(tmpdir + '/' + tmpname, "PNG")
+
+
+    elif request.args.get('REQUEST') == 'GetMap':
+        print("GetMap COMMAND: ", COMMAND)
+        print("GetMap VARIABLE: ", VARIABLE)
         
-        if request.args.get('SERVICE') != 'WMS':
-                raise
+        #Define pyferret variables for 'REQUEST' == 'GetMap'                
+        # BBOX = environ['BBOX']
+        BBOX = request.args.get('BBOX')
+        BBOX = BBOX.split(',')
+    
+        WIDTH = int(request.args.get('WIDTH'))
+        HEIGHT = int(request.args.get('HEIGHT'))
 
-        print("request.method in slippymaps_maplayer: ", request.method)
-        print("REQUEST: ", request.args.get('REQUEST'))
+        HLIM = '/hlim=' + str(BBOX[0]) + ':' + str(BBOX[2])
+        VLIM = '/vlim=' + str(BBOX[1]) + ':' + str(BBOX[3])
 
-        COMMAND = request.args.get('COMMAND')
-        VARIABLE = request.args.get('VARIABLE')
+        # pyferret.run('set window/aspect=1/outline=5')
+        # pyferret.run('go margins 0 0 0 0')
 
-
-        # global cmdArray
-        # cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
-        # print("cmdArray: ", cmdArray)
-
-        tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-        tmpname = os.path.basename(tmpname)
-
-        # http://localhost:8000/slippymaps_maplayer?SERVICE=WMS&REQUEST=GetMap&LAYERS=&STYLES=&FORMAT=image%2Fpng&TRANSPARENT=true&VERSION=1.1.1&COMMAND=shade%2Fx%3D-180%3A180%2Fy%3D-90%3A90%2Flev%3D20v%2Fpal%3Dmpl_PSU_inferno&VARIABLE=temp%5Bk%3D%40max%5D&HEIGHT=256&WIDTH=256&SRS=EPSG%3A4326&BBOX=-90,0,0,90
-
-        if request.args.get('REQUEST') == 'GetColorBar':
-            print("IT'S A !!!!! ", request.args.get('REQUEST'))
-            print("GetColorBar COMMAND: ", COMMAND)
-            print("GetColorBar VARIABLE: ", VARIABLE)
-
-            # # global cmdArray
-            # cmdArray.append({'command': COMMAND, 'variable': VARIABLE})
-            # print("******** cmdArray: ", cmdArray)
-
-
-        elif request.args.get('REQUEST') == 'GetMap':
-            print("GetMap COMMAND: ", COMMAND)
-            print("GetMap VARIABLE: ", VARIABLE)
-
-            
-
-            WIDTH = request.args.get('WIDTH')
-            HEIGHT = request.args.get('HEIGHT')
-            BBOX = request.args.get('BBOX')
-            BBOX = BBOX.split(',')
-
-            # pyferret.run('go ' + envScript)
-            # pyferret.run('use levitus_climatology')
-            
-            
-            HLIM = '/hlim=' + BBOX[0] + ':' + BBOX[2]
-            VLIM = '/vlim=' + BBOX[1] + ':' + BBOX[3]
-            
-            # pyferret.run('set window/aspect=1/outline=5')
-            # pyferret.run('go margins 3 0 0 0')
-
+        if POSTVAR:
+            print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
+            # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
+        else:
+            print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-            # pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
-
-        if os.path.isfile(tmpdir + '/' + tmpname):
-            ftmp = open(tmpdir + '/' + tmpname, 'rb')
-            img = ftmp.read()
-            print("*****************len(img): ", len(img))
-            ftmp.close()
-            os.remove(tmpdir + '/' + tmpname)
         
-        resp = Response(iter(img), status=200, mimetype='image/png')
-        return resp
+        # pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')                
 
-
-@app.route('/dummy2', methods = ['GET', 'POST'])
-def dummy():
-    nbMaps=2
-
-    # if request.method == 'POST':
-    #     print("######################### request.form in /dummy: ", request.form)
-    #     nummaps = int(request.form['nummaps'])
-    #     return render_template('dummy.html', nbMaps=nbMaps, nummaps=nummaps)
-    #     print("nummaps: ", nummaps)
-    return render_template('dummy2.html', nbMaps=nbMaps, nummaps='')
+    if os.path.isfile(tmpdir + '/' + tmpname):
+        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+        img = ftmp.read()               
+        ftmp.close()
+        os.remove(tmpdir + '/' + tmpname)
+    
+    resp = Response(iter(img), status=200, mimetype='image/png')
+    return resp
              
 #==============================================================
 def number_of_workers():

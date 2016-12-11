@@ -174,3 +174,10 @@ The method request_context() returns a new RequestContext object and uses it in 
 The request context internally works like a stack: The topmost level on the stack is the current active request. push() adds the context to the stack on the very top, pop() removes it from the stack again. On popping the application’s teardown_request() functions are also executed.
 
 Another thing of note is that the request context will automatically also create an application context when it’s pushed and there is no application context for that application so far.
+
+SESSIONS
+---------
+http://connor-johnson.com/2016/01/22/using-sessions-in-flask/
+
+for secret key see:
+https://gist.github.com/rduplain/2173954
