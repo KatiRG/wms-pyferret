@@ -56,9 +56,6 @@ def index():
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
-
-
-    print("request method: ", request.method)
     print("request.args: ", request.args)
 
     global dataset
@@ -74,7 +71,12 @@ def map_formhandler():
 
     sumSessionCounter()
     session['counter'] = session['counter'] + 1
+    junk[session['counter']] = session['counter']
+    titlediv = 'title' + str(session['counter'])
+    mapdiv = 'map' + str(session['counter'])
+    keydiv = 'key' + str(session['counter'])
     print("################ COUNTER!!!!!!!!! ", session['counter'])
+    print("################ junk!!!!!!!!! ", junk)
 
     # pyferret.run('use ' + dataset)
 
@@ -85,13 +87,11 @@ def map_formhandler():
     # session.modified = True
     # print("############## session obj !!!!!!!!!!!!!!!: ", session['objects'])
 
-    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, postvar=postvar)
+    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, counter=session['counter'], mapdiv=mapdiv, keydiv=keydiv,titlediv=titlediv)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
 def api_calcmaps():
-    print("############### request method: ", request.method)
-    print("############### IN CALCMAP!!!")
     print("request.args: ", request.args)
 
     # ImmutableMultiDict([('LAYERS', u''), ('STYLES', u''), ('WIDTH', u'256'), 
@@ -105,8 +105,6 @@ def api_calcmaps():
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
-    print("############### DSET: ", DSET)
-    print("############### POSTVAR: ", POSTVAR)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
@@ -149,10 +147,10 @@ def api_calcmaps():
         # pyferret.run('go margins 0 0 0 0')
 
         if POSTVAR:
-            print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
+            print("POSTVAR EXISTS: ", POSTVAR)
             # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
         else:
-            print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            print("NO POSTVAR")
             # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
         
         # pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')                

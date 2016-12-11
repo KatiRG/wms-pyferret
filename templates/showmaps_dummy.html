@@ -39,16 +39,24 @@
 	  	</form>
 	  	<br><br><br>
 
-	  	<p>FOO from session!!! {{foo}}</p>
+	  	<p>mapdiv from session!!! {{mapdiv}}</p>
+	  	<p>counter from session!!! {{counter}}</p>
+	  	
 
 	  	<!-- Add map requested by user in form -->
-	  	<div class='mapContainer'>
+	  	<!-- <div class='mapContainer'>
 		   <div id='title0' class='title'></div>
 		   <div id='map0' class='map'></div>
 		   <div id='key0' class='key'><img /></div>
+		</div> -->
+
+		<div class='mapContainer'>
+		   <div id={{titlediv}} class='title'></div>
+		   <div id={{mapdiv}} class='map'></div>
+		   <div id={{keydiv}} class='key'><img /></div>
 		</div>
 
-		<p>dataset: {{dataset}}</p>
+		
   		
 		<script type='text/javascript'>
 
@@ -60,7 +68,7 @@
 			var frontiers= [];
 
 			//===============================================
-			wmspyferret[0] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}', {
+			wmspyferret[{{counter}}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}', {
 				command: '{{ command }}',
 				variable: '{{ variable }}',
 			    	crs: crs,
@@ -69,15 +77,15 @@
 			    	uppercase: true
 			});
 
-			frontiers[0] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+			frontiers[{{counter}}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
 				layers: 'GCA:GCA_frontiersCountryAndRegions',
 				format: 'image/png',
 			    	crs: crs,
 				transparent: true
 			});
 
-			map[0] = L.map('map0', {
-			    layers: [wmspyferret[0], frontiers[0]],
+			map[{{counter}}] = L.map('map' + {{counter}}, {
+			    layers: [wmspyferret[{{counter}}], frontiers[{{counter}}]],
 			    crs: crs,
 			    center: [0,-40],
 			    zoom: 1,
@@ -109,9 +117,9 @@
 			// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
 			// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
-			$('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
-									'&COMMAND=' + wmspyferret[0].wmsParams.command +
-									'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
+			$({{keydiv}}).children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+									'&COMMAND=' + wmspyferret[{{counter}}].wmsParams.command +
+									'&VARIABLE=' + wmspyferret[{{counter}}].wmsParams.variable.replace('+','%2B'));
 
 						
 
