@@ -25,58 +25,54 @@ from flask import Flask, render_template, make_response, request, Response, sess
 #==============================================================
 # Define flask app
 app = Flask(__name__)
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-class SomeObj():
-    def __init__(self, param):
-        self.param = param
-    def query(self):
-        self.param += 1
-        return self.param
-
-global_obj = SomeObj(0)
-print("^^^^^^^^^^^^ global_obj here: ", global_obj)
+@app.before_request
+def session_management():
+    # make the session last indefinitely until it is cleared
+    session.permanent = True
 
 
 @app.route('/test')
 def test_index():
     return render_template('index.html', message='')
 
-# @app.route('/test', methods = ['GET', 'POST'])
-# def formhandler():
-#     scenario = request.form['scenario']
-#     message = "Showing maps for scenario " + scenario.replace('_','.') + ":"
-#     if scenario == "RCP2_6":
-#         map1 = "Logo-compact.jpg"
-#         map2 = "Logo-compact.jpg"
-#         map3 = "Logo-compact.jpg"
-#         map4 = "Logo-compact.jpg"
-#     elif scenario == "RCP8_5":
-#         map1 = "sst_rcp8.5.jpg"
-#         map2 = "ph_rcp8.5.jpg"
-#         map3 = "O2_rcp8.5.jpg"
-#         map4 = "productivity_rcp8.5.jpg"
-
-#     return render_template('index.html', message=message, 
-#         scenario=scenario,map1=map1,map2=map2, map3=map3, map4=map4)
-
 @app.route('/')
 def index():
+    session.clear()
+    session['cart'] = []
+    
+
     return render_template('mapform.html', command='', variable='')
 
 dataset=''
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
-    print("request method: ", request.method)
-    print("request.args: ", request.args)
+    # print("request method: ", request.method)
+    # print("request.args: ", request.args)
 
-    global dataset
+    # global dataset
     dataset = str(request.form['dataset'])
     variable = str(request.form['mapvar'])
     command = request.form['ferretcmd']
     postvar = str(request.form['postvar'])
 
-    # http://stackoverflow.com/questions/34321978/interpret-an-html-form-value-as-a-list-in-a-flask-view
+    # if( len( session['cart'].keys() ) == 0 ):
+    #     print("cart empty: ",  session['cart'])
+    #     session['cart']['dataset'] = dataset        
+    #     session.modified = True
+    #     print("add to cart: ",  session['cart'])
+    # else:
+    #     print('cart not empty: ',  session['cart'])
+    #     session["cart"].append(dict({'dataset': dataset}))
+    #     # session["cart"].append(dict({'product_id': id, 'qty': qty}))        
+    #     session.modified = True
+    #     print("append to cart: ",  session['cart'])
+
+    session["cart"].append({'command': command, 'variable': variable})
+    print("append to cart: ",  session['cart'])
+    
 
     print("dataset: ", dataset)
     print("variable: ", variable)
@@ -105,8 +101,8 @@ def api_calcmaps():
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
-    print("############### DSET: ", DSET)
-    print("############### POSTVAR: ", POSTVAR)
+    # print("############### DSET: ", DSET)
+    # print("############### POSTVAR: ", POSTVAR)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
@@ -116,8 +112,8 @@ def api_calcmaps():
     pyferret.run('use ' + DSET)
 
     if request.args.get('REQUEST') == 'GetColorBar':                
-                print("GetColorBar COMMAND: ", COMMAND)
-                print("GetColorBar VARIABLE: ", VARIABLE)
+                # print("GetColorBar COMMAND: ", COMMAND)
+                # print("GetColorBar VARIABLE: ", VARIABLE)
 
                 pyferret.run('set window/aspect=1/outline=0')
                 # pyferret.run('set window/aspect=.7')
@@ -159,11 +155,11 @@ def api_calcmaps():
         # 
 
         if POSTVAR:
-            print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
+            # print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
             # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',nav_lon,nav_lat')
             pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
         else:
-            print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            # print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
         
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')                
@@ -181,7 +177,7 @@ def api_calcmaps():
 
     
 
-
+# Reproduces PB's code for two slippymaps (e.g. page_01.html)
 
 # http://blog.luisrei.com/articles/flaskrest.html
 @app.route('/slippymaps_maplayer', methods = ['GET', 'POST'])
