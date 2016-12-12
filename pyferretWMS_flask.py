@@ -43,35 +43,21 @@ def index():
     session['cart'] = []
     
 
-    return render_template('mapform.html', command='', variable='')
+    return render_template('mapform.html', command='', variable='',cmdArray='')
 
 dataset=''
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
-    # print("request method: ", request.method)
-    # print("request.args: ", request.args)
-
-    # global dataset
     dataset = str(request.form['dataset'])
     variable = str(request.form['mapvar'])
     command = request.form['ferretcmd']
     postvar = str(request.form['postvar'])
 
-    # if( len( session['cart'].keys() ) == 0 ):
-    #     print("cart empty: ",  session['cart'])
-    #     session['cart']['dataset'] = dataset        
-    #     session.modified = True
-    #     print("add to cart: ",  session['cart'])
-    # else:
-    #     print('cart not empty: ',  session['cart'])
-    #     session["cart"].append(dict({'dataset': dataset}))
-    #     # session["cart"].append(dict({'product_id': id, 'qty': qty}))        
-    #     session.modified = True
-    #     print("append to cart: ",  session['cart'])
-
     session["cart"].append({'command': command, 'variable': variable})
     print("append to cart: ",  session['cart'])
+    cmdArray = session['cart']
+    print("cmdArray: ", cmdArray)
     
 
     print("dataset: ", dataset)
@@ -81,14 +67,11 @@ def map_formhandler():
 
     # pyferret.run('use ' + dataset)
 
-    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset, postvar=postvar)
-    # return render_template('mapform.html', command=command, variable=variable)
+    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset, postvar=postvar,cmdArray=cmdArray)
+
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
 def api_calcmaps():
-    print("############### request method: ", request.method)
-    print("############### IN CALCMAP!!!")
-    print("request.args: ", request.args)
 
     # ImmutableMultiDict([('LAYERS', u''), ('STYLES', u''), ('WIDTH', u'256'), 
     # ('SERVICE', u'WMS'), ('FORMAT', u'image/png'), ('REQUEST', u'GetMap'), 
@@ -155,11 +138,8 @@ def api_calcmaps():
         # 
 
         if POSTVAR:
-            # print("POSTVAR EXISTS!!!!!!!!!!!!!!!!!!!!!!!!!!!! ", POSTVAR)
-            # pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',nav_lon,nav_lat')
             pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
         else:
-            # print("NO POSTVAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
         
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')                
