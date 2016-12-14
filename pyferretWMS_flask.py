@@ -40,7 +40,8 @@ def test_index():
 @app.route('/')
 def index():
     session.clear()
-    session['cart'] = []
+    session['cart'] = [] #to store ferret commands
+    session['img_cart'] = [] #to store img for later downloading
     
 
     return render_template('mapform.html')
@@ -96,10 +97,21 @@ def api_calcmaps():
                 pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
                 pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
+                print('tmpname: ', 'key' + tmpname)
+
                 im = Image.open(tmpdir + '/key' + tmpname)
                 box = (0, 325, 400, 375)
                 area = im.crop(box)
                 area.save(tmpdir + '/' + tmpname, "PNG")
+
+                #store img before erasing
+                session["img_cart"] = 'key' + tmpname
+                print("session['img_cart'] in GetColorBar: ", session['img_cart'])
+                print("session['cart'] in GetColorBar: ", session['cart'])
+
+                # session["img_cart"].append({'area': area})
+                # imgArray = session['img_cart']
+                # print("imgArray: ", imgArray)
 
 
     elif request.args.get('REQUEST') == 'GetMap':
@@ -141,6 +153,11 @@ def api_calcmaps():
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()               
         ftmp.close()
+
+        # #store img before erasing
+        # session["img_cart"].append({'img': img})
+        # imgArray = session['img_cart']
+        # print("imgArray: ", imgArray)
         os.remove(tmpdir + '/' + tmpname)
     
     resp = Response(iter(img), status=200, mimetype='image/png')
@@ -151,6 +168,10 @@ def api_calcmaps():
 # http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
 @app.route('/download')
 def download():
+    print("session img_cart: ", session["img_cart"])
+    junk=session['img_cart']
+    
+
     csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
             "1985/01/21","Douglas Adams",0345391802,5.95
             "1990/01/12","Douglas Hofstadter",0465026567,9.95
@@ -160,10 +181,17 @@ def download():
 
     # We need to modify the response, so the first thing we 
     # need to do is create a response out of the CSV string
-    response = make_response(csv)
+    # response = make_response(csv)
     # This is the key: Set the right header for the response
     # to be downloaded, instead of just printed on the browser
-    response.headers["Content-Disposition"] = "attachment; filename=books.csv"
+    # response.headers["Content-Disposition"] = "attachment; filename=books.csv"
+
+    response = make_response(junk)
+    response.headers["Content-Type"] = "image/png"
+    # response.headers["Content-Disposition"] = "attachment; filename=test.png"
+    
+    
+
     return response
 
     
