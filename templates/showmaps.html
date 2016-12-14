@@ -95,9 +95,9 @@
 
 			//===============================================
 			// Set up synchro between maps
-			// {% for synchro in listSynchroMapsToSet %}				
-			// 	map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
-			// {% endfor %}
+			{% for synchro in listSynchroMapsToSet %}
+				map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
+			{% endfor %}
 
 			//===============================================
 			function getTitle(aCommand, aVariable) {

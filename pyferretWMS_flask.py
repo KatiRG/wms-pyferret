@@ -59,10 +59,12 @@ def map_formhandler():
     cmdArray = session['cart']
     print("cmdArray: ", cmdArray)
     
+    nbMaps = len(cmdArray)
+    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
     # pyferret.run('use ' + dataset)
 
-    return render_template('showmaps.html', postvar=postvar, cmdArray=cmdArray)
+    return render_template('showmaps.html', postvar=postvar, cmdArray=cmdArray, listSynchroMapsToSet=listSynchroMapsToSet)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
