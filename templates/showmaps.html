@@ -40,12 +40,14 @@
 	  	<br><br><br>
 
 	  	<!-- Add map requested by user in form -->
-		{% for aDict in cmdArray -%}			
+		{% for aDict in cmdArray -%}
 			<p>
 				Map number: {{loop.index}} <br>
-				dataset: {{dataset}}<br>		
+				dataset: {{aDict.dataset}}<br>
 			  	variable: {{aDict.variable}} <br>
-			  	command: {{aDict.command}}			
+			  	command: {{aDict.command}}
+			  	{% if aDict.postvar %} ({{aDict.postvar}})
+			  	{% endif %}
 			</p>
 			<div class='mapContainer'>
 			   <div id='title{{ loop.index }}' class='title'></div>
@@ -67,7 +69,7 @@
 			//===============================================
 			{% for aDict in cmdArray -%}
 
-				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}', {
+				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}', {
 					command: '{{ aDict.command }}',
 					variable: '{{ aDict.variable }}',
 				    	crs: crs,
@@ -118,7 +120,7 @@
 				// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
 				// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
-				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 			{% endfor %}

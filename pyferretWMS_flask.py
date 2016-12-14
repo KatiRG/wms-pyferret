@@ -19,7 +19,7 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request, Response, session, g
+from flask import Flask, render_template, make_response, request, Response, session
 # from app import index_add_counter
 
 #==============================================================
@@ -43,7 +43,7 @@ def index():
     session['cart'] = []
     
 
-    return render_template('mapform.html', command='', variable='',cmdArray='')
+    return render_template('mapform.html')
 
 dataset=''
 @app.route('/', methods = ['POST', 'GET'])
@@ -54,20 +54,15 @@ def map_formhandler():
     command = request.form['ferretcmd']
     postvar = str(request.form['postvar'])
 
-    session["cart"].append({'command': command, 'variable': variable})
+    session["cart"].append({'command': command, 'variable': variable, 'dataset': dataset, 'postvar': postvar})
     print("append to cart: ",  session['cart'])
     cmdArray = session['cart']
     print("cmdArray: ", cmdArray)
     
 
-    print("dataset: ", dataset)
-    print("variable: ", variable)
-    print('command: ', command)
-    print('postvar: ', postvar)
-
     # pyferret.run('use ' + dataset)
 
-    return render_template('showmaps.html', command=command, variable=variable, dataset=dataset, postvar=postvar,cmdArray=cmdArray)
+    return render_template('showmaps.html', postvar=postvar, cmdArray=cmdArray)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
@@ -84,7 +79,7 @@ def api_calcmaps():
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
-    # print("############### DSET: ", DSET)
+    print("############### DSET: ", DSET)
     # print("############### POSTVAR: ", POSTVAR)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
