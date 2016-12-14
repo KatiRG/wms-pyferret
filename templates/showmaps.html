@@ -40,16 +40,15 @@
 	  	<br><br><br>
 
 	  	<!-- Add map requested by user in form -->
-		{% for aDict in cmdArray -%}
-			<p>
+		{% for aDict in cmdArray -%}		
+			<div class='mapContainer'>
 				Map number: {{loop.index}} <br>
 				dataset: {{aDict.dataset}}<br>
 			  	variable: {{aDict.variable}} <br>
 			  	command: {{aDict.command}}
-			  	{% if aDict.postvar %} ({{aDict.postvar}})
+			  	{% if aDict.postvar %} 
+			  		({{aDict.postvar}})
 			  	{% endif %}
-			</p>
-			<div class='mapContainer'>
 			   <div id='title{{ loop.index }}' class='title'></div>
 			   <div id='map{{ loop.index }}' class='map'></div>
 			   <div id='key{{ loop.index }}' class='key'><img /></div>
