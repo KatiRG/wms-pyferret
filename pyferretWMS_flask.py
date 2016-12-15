@@ -105,13 +105,9 @@ def api_calcmaps():
                 area.save(tmpdir + '/' + tmpname, "PNG")
 
                 #store img before erasing
-                session["img_cart"] = 'key' + tmpname
+                session["img_cart"] = tmpdir + '/key' + tmpname
                 print("session['img_cart'] in GetColorBar: ", session['img_cart'])
                 print("session['cart'] in GetColorBar: ", session['cart'])
-
-                # session["img_cart"].append({'area': area})
-                # imgArray = session['img_cart']
-                # print("imgArray: ", imgArray)
 
 
     elif request.args.get('REQUEST') == 'GetMap':
@@ -186,13 +182,23 @@ def download():
     # to be downloaded, instead of just printed on the browser
     # response.headers["Content-Disposition"] = "attachment; filename=books.csv"
 
-    response = make_response(junk)
-    response.headers["Content-Type"] = "image/png"
+    # response = make_response(junk)
+    # response.headers["Content-Type"] = "image/png"
     # response.headers["Content-Disposition"] = "attachment; filename=test.png"
+    # return response
+
+    # http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
+    with open(junk, 'rb') as image_file:
+        def wsgi_app(environ, start_response):
+            start_response('200 OK', [('Content-type', 'image/png')])
+            return image_file.read()
+        response = make_response(wsgi_app)
+        response.headers["Content-Disposition"] = "attachment; filename=test.png"
+        return response
     
     
 
-    return response
+    
 
     
 

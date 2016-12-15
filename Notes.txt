@@ -247,3 +247,25 @@ yes? cancel mode meta
 
 This outputs a metafile_*.plt file.
 Marco's script uses gksm2ps to convert *.plt to *vec.pdf, *.eps, etc.
+
+Timeseries
+----------
+Test with monthly_navy_winds.cdf. Try to plot time series avg over x and y coords in current map view box.
+
+http://ferret.pmel.noaa.gov/Ferret/documentation/pyferret/pyferret-python-objects/
+
+use monthly_navy_winds.cdf
+plot uwnd[x=20:160@ave,y=0:45@ave]
+list uwnd[x=20:160@ave,y=0:45@ave]
+
+Image save
+-----------
+L'outil qui sert à récupérer une image ou un pdf d'un site.
+
+http://wkhtmltopdf.org/
+
+En js: https://www.npmjs.com/package/wkhtmltoimage
+
+En python: https://pypi.python.org/pypi/wkhtmltopdf/0.2
+
+C'est ce qu'utilise WDD dans leur application Emissions du GCA
