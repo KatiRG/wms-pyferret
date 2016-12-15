@@ -21,6 +21,22 @@ $ ./pyferretWMS.py --server
 2) with ferret command as an arg:
 $ ./pyferretWMS_edit.py 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/title=Maximum temp[k=@max]; shade/x=-180:180/y=-90:90/lev=(-inf)(0,140,5)(inf)/pal=mpl_Seq1_RdPu/title=Temperature&nbspvariance temp[k=@var]; shade/x=-180:180/y=-90:90/lev=(-inf)(30,40,0.5)(inf)/pal=mpl_PSU_viridis/title=Surface&nbspsalinity salt[k=1]'
 
+FORM PARAMS
+-----------
+levitus_climatology
+temp[k=@max] OR salt[k=1]
+shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno
+
+/home/scratch01/mvhulten/analysis/mang-16B05-LD40_Bio_1y_ptrc_T_P80
+dMn[z=0, l=1] OR dMn[z=0, l=2] (up to 10?)
+shade/lev=20v/modulo/pal=light_centered
+nav_lon, nav_lat
+
+monthly_navy_winds
+UWND[z=0, l=1]
+shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno
+
+
 FERRET DATASET DIR:
 /homel/cnangini/.conda/envs/FERRET/share/fer_dsets
 
