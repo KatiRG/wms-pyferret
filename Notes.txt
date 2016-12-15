@@ -260,12 +260,17 @@ list uwnd[x=20:160@ave,y=0:45@ave]
 
 Image save
 -----------
+
+save csv file: http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
+save png: http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
+
+From Patrick, save capture d'ecran:
+
 L'outil qui sert à récupérer une image ou un pdf d'un site.
 
 http://wkhtmltopdf.org/
 
 En js: https://www.npmjs.com/package/wkhtmltoimage
-
 En python: https://pypi.python.org/pypi/wkhtmltopdf/0.2
 
 C'est ce qu'utilise WDD dans leur application Emissions du GCA

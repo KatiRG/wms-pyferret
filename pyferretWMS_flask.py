@@ -165,30 +165,18 @@ def api_calcmaps():
 @app.route('/download')
 def download():
     print("session img_cart: ", session["img_cart"])
-    junk=session['img_cart']
-    
+    png_img=session['img_cart']
 
-    csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
-            "1985/01/21","Douglas Adams",0345391802,5.95
-            "1990/01/12","Douglas Hofstadter",0465026567,9.95
-            "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
-            "1999/12/03","Richard Friedman",0060630353,5.95
-            "2004/10/04","Randel Helms",0879755725,4.50"""
+    # csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
+    #         "1985/01/21","Douglas Adams",0345391802,5.95
+    #         "1990/01/12","Douglas Hofstadter",0465026567,9.95
+    #         "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
+    #         "1999/12/03","Richard Friedman",0060630353,5.95
+    #         "2004/10/04","Randel Helms",0879755725,4.50"""
 
-    # We need to modify the response, so the first thing we 
-    # need to do is create a response out of the CSV string
-    # response = make_response(csv)
-    # This is the key: Set the right header for the response
-    # to be downloaded, instead of just printed on the browser
-    # response.headers["Content-Disposition"] = "attachment; filename=books.csv"
-
-    # response = make_response(junk)
-    # response.headers["Content-Type"] = "image/png"
-    # response.headers["Content-Disposition"] = "attachment; filename=test.png"
-    # return response
 
     # http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
-    with open(junk, 'rb') as image_file:
+    with open(png_img, 'rb') as image_file:
         def wsgi_app(environ, start_response):
             start_response('200 OK', [('Content-type', 'image/png')])
             return image_file.read()
