@@ -37,6 +37,15 @@ def session_management():
 def test_index():
     return render_template('index.html', message='')
 
+@app.route('/login')
+def login():
+    # Start pyferret	
+    print("starting pyferret")
+    pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
+
+    return render_template('login.html')
+
+
 @app.route('/')
 def index():
     session.clear()
@@ -80,14 +89,15 @@ def api_calcmaps():
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
-    print("############### DSET: ", DSET)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
 
-    # pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
+    # pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)           
+    # pyferret.run('use levitus_climatology')
+    
     print("starting pyferret.........................")
-    pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
+    pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)    
     pyferret.run('use ' + DSET)
     pyferret.run('show data/all')
 
@@ -100,21 +110,10 @@ def api_calcmaps():
                 pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
                 pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
-                print('tmpname: ', 'key' + tmpname)
-
                 im = Image.open(tmpdir + '/key' + tmpname)
                 box = (0, 325, 400, 375)
                 area = im.crop(box)
                 area.save(tmpdir + '/' + tmpname, "PNG")
-
-                #store img before erasing
-                session["img_cart"] = tmpdir + '/key' + tmpname
-
-                # session['my_var'] = 'my_value222222222'
-                
-
-                print("session['img_cart'] in GetColorBar: ", session['img_cart'])
-                # print("session['cart'] in GetColorBar: ", session['cart'])
 
 
     elif request.args.get('REQUEST') == 'GetMap':
@@ -150,8 +149,7 @@ def api_calcmaps():
         
         #For saving to file
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-        # pyferret.run('cancel mode meta')
-        print("*************** file: ", tmpdir + '/' + tmpname)
+        pyferret.run('cancel mode meta')
         pyferret.stop()
         print("...................stopping pyferret")
 
@@ -159,11 +157,6 @@ def api_calcmaps():
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()               
         ftmp.close()
-
-        # #store img before erasing
-        # session["img_cart"].append({'img': img})
-        # imgArray = session['img_cart']
-        # print("imgArray: ", imgArray)
         os.remove(tmpdir + '/' + tmpname)
     
     resp = Response(iter(img), status=200, mimetype='image/png')
@@ -216,11 +209,10 @@ def timeseries():
 
     
 
- 
-
 #==============================================================
 def number_of_workers():
-    return (multiprocessing.cpu_count() * 2) + 1
+    #return (multiprocessing.cpu_count() * 2) + 1
+    return 2
 
 #==============================================================
 class myArbiter(gunicorn.arbiter.Arbiter):
@@ -240,8 +232,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
     def __init__(self, app, options=None):
 
-	    # # Start pyferret	
-     #    pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
+	# Start pyferret	
+        # pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
 
     	master_pid = os.getpid()
     	print('---------> gunicorn master pid: ', master_pid)    
@@ -260,7 +252,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     def load(self):
         return self.application
 
-# if control before exiting is needed
+    # if control before exiting is needed
     def run(self):
         try:
             myArbiter(self).run()

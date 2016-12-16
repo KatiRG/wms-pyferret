@@ -21,6 +21,35 @@ $ ./pyferretWMS.py --server
 2) with ferret command as an arg:
 $ ./pyferretWMS_edit.py 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno/title=Maximum temp[k=@max]; shade/x=-180:180/y=-90:90/lev=(-inf)(0,140,5)(inf)/pal=mpl_Seq1_RdPu/title=Temperature&nbspvariance temp[k=@var]; shade/x=-180:180/y=-90:90/lev=(-inf)(30,40,0.5)(inf)/pal=mpl_PSU_viridis/title=Surface&nbspsalinity salt[k=1]'
 
+laptop
+-------
+[cnangini@lsce3174 ~]$ bash
+[cnangini@lsce3174 ~]$ conda create -n myenv python=2
+[cnangini@lsce3174 ~]$ source anaconda/bin/activate myenv
+(myenv) [cnangini@lsce3174 ~]$ python
+Python 2.7.12 |Continuum Analytics, Inc.| (default, Jul  2 2016, 17:42:40)
+[GCC 4.4.7 20120313 (Red Hat 4.4.7-1)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+Anaconda is brought to you by Continuum Analytics.
+Please check out: http://continuum.io/thanks and https://anaconda.org
+>>> import pyferret
+>>> pyferret.start()
+     NOAA/PMEL TMAP
+     PyFERRET v7.021 (optimized)
+     Linux 3.13.0-105-generic - 12/13/16
+     13-Dec-16 23:29    
+
+True
+>>> quit()
+
+Carsten has gunicorn (19.1.0) installed with conda and the import worked:
+
+>> from gunicorn.app import base
+
+Patrick's versions on webportals
+---------------------------------
+http://webportals.ipsl.jussieu.fr/ScientificApps/dev/forge_patrick/wms-pyferret/page_05.html
+
 FORM PARAMS
 -----------
 levitus_climatology
@@ -208,6 +237,9 @@ session cart:
 http://stackoverflow.com/questions/33775017/flask-python-where-should-i-put-goods-that-go-to-cart-in-online-shop
 http://stackoverflow.com/questions/32594269/how-to-append-existing-keys-by-value-in-python-dictionary
 http://stackoverflow.com/questions/32713380/how-to-change-values-in-flask-session-dictionary-using-forms
+
+passing session vars between routes:
+http://stackoverflow.com/questions/27611216/how-to-pass-a-variable-between-flask-pages
 
 
 from Miika:
