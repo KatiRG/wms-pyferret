@@ -155,21 +155,18 @@ def api_calcmaps():
 @app.route('/timeseries/<path:urlpath>')
 def render_timeseries(urlpath):
     try:
-        # tmp_cmdArray= [
-        # {'variable': 'temp[k=@max]', 
-        # 'postvar': '', 
-        # 'command': u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno', 
-        # 'dataset': 'levitus_climatology'}
-        # ]
-
+        url_split = urlpath.split("&", 2)
+        mapnum=int(urlpath.split("&", 2)[0])
+        dset=str(urlpath.split("&", 2)[1])
+        variable=str(urlpath.split("&", 2)[2])
         
-        return render_template("showts_dummy.html", urlpath=urlpath)
+        return render_template("showts_dummy.html", urlpath=urlpath, mapnum=mapnum, dset=dset, variable=variable)
     except Exception, e:
         return(str(e))      
              
 @app.route('/showts_resource', methods=['GET'])
 def calc_timeseries():
-    print("request.args: ", request.args)
+    print("request.args in showts_resource: ", request.args)
 
     if request.args.get('REQUEST') == 'CalcTimeseries':
         BBOX = request.args.get('BBOX')

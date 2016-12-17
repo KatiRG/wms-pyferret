@@ -94,7 +94,12 @@
 				    zoom: 1,
 				    attributionControl: false
 				});
-			{% endfor %}	
+			{% endfor %}
+
+			//Get map bounds of current view
+			map0.on('moveend', function() { 
+			     console.log("bounds: ", map.getBounds());
+			});
 
 			//===============================================
 			// Set up synchro between maps
