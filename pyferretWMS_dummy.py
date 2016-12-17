@@ -99,7 +99,7 @@ def api_calcmaps():
 
     # pyferret.run('use ' + DSET)
 
-    if request.args.get('REQUEST') == 'GetColorBar':                
+    if request.args.get('REQUEST') == 'GetColorBar':
                 print("GetColorBar COMMAND: ", COMMAND)
                 print("GetColorBar VARIABLE: ", VARIABLE)
 
@@ -151,7 +151,52 @@ def api_calcmaps():
     
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
+
+@app.route('/timeseries/<int:mapnum>/')
+def render_timeseries(mapnum=1):
+    try:
+        # tmp_cmdArray= [
+        # {'variable': 'temp[k=@max]', 
+        # 'postvar': '', 
+        # 'command': u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno', 
+        # 'dataset': 'levitus_climatology'}
+        # ]
+
+        
+        return render_template("showts_dummy.html", mapnum=mapnum)
+    except Exception, e:
+        return(str(e))      
              
+@app.route('/showts_resource', methods=['GET'])
+def calc_timeseries():
+    print("request.args: ", request.args)
+
+    if request.args.get('REQUEST') == 'CalcTimeseries':
+        BBOX = request.args.get('BBOX')
+        DSET = str(request.args.get('DSET'))
+        VARIABLE = str(request.args.get('VARIABLE'))
+        print("GetTimeseries DSET: ", DSET)
+        print("GetTimeseries BBOX: ", BBOX)
+        print("GetTimeseries VARIABLE: ", VARIABLE)
+
+        #Calculate timeseries and return as PNG file
+        # plot uwnd[x=20:160@ave,y=0:45@ave]
+        # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
+
+        # pyferret.run('plot uwnd[x=20:160@ave,y=0:45@ave]')
+        # pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/somename.png' +  '"')
+
+    if os.path.isfile(tmpdir + '/' + tmpname):
+        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+        img = ftmp.read()               
+        ftmp.close()
+        os.remove(tmpdir + '/' + tmpname)
+    
+    resp = Response(iter(img), status=200, mimetype='image/png')
+    return resp
+
+
+
 #==============================================================
 def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
