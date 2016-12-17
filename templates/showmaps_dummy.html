@@ -134,6 +134,27 @@
 			// 						'&COMMAND=' + wmspyferret[{{counter}}].wmsParams.command +
 			// 						'&VARIABLE=' + wmspyferret[{{counter}}].wmsParams.variable.replace('+','%2B'));
 
+			//Default bbox:
+			var bbox = [
+				map[1].getBounds().getEast(),
+			    map[1].getBounds().getWest(),
+			    map[1].getBounds().getNorth(),
+			    map[1].getBounds().getSouth()
+			];
+			console.log("default bbox: ", bbox);
+
+			//bbox on zoom
+			map[1].on('moveend', function() {
+			    var east = map[1].getBounds().getEast(),
+			        west = map[1].getBounds().getWest(),
+			        north = map[1].getBounds().getNorth(),
+			        south = map[1].getBounds().getSouth();
+
+			    bbox = [east, west, north, south];
+			    console.log("bbox on zoom: ", bbox);
+
+			});
+
 			{% for aDict in cmdArray -%}
 				// title0 = getTitle(wmspyferret[0].wmsParams.command, wmspyferret[0].wmsParams.variable.replace('%2B','+'));
 				// $('#title0').html(title1);
@@ -149,7 +170,7 @@
 
 				$("#button_ts").click(function(){
 					console.log("this: ", $(this))
-					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}');
+					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&BBOX=' + bbox);
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
   					return false;
 					
