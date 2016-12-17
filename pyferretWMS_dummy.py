@@ -152,8 +152,8 @@ def api_calcmaps():
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
 
-@app.route('/timeseries/<int:mapnum>/')
-def render_timeseries(mapnum=1):
+@app.route('/timeseries/<path:urlpath>')
+def render_timeseries(urlpath):
     try:
         # tmp_cmdArray= [
         # {'variable': 'temp[k=@max]', 
@@ -163,7 +163,7 @@ def render_timeseries(mapnum=1):
         # ]
 
         
-        return render_template("showts_dummy.html", mapnum=mapnum)
+        return render_template("showts_dummy.html", urlpath=urlpath)
     except Exception, e:
         return(str(e))      
              
