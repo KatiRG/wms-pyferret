@@ -49,7 +49,7 @@ def test_index():
 def index():
     # reset the session data
     session.clear()
-    # session["foo"] = "Je m'en Foo"
+    session['cart'] = [] #to store ferret commands
 
     # Initialise the counter, or increment it
     sumSessionCounter()
@@ -66,39 +66,16 @@ def map_formhandler():
     command = request.form['ferretcmd']
     postvar = str(request.form['postvar'])
 
-    print("dataset: ", dataset)
-    print("variable: ", variable)
-    print('command: ', command)
-    print('postvar: ', postvar)
+    session["cart"].append({'command': command, 'variable': variable, 'dataset': dataset, 'postvar': postvar})
+    cmdArray = session['cart']
+    print("cmdArray: ", cmdArray)
 
-    sumSessionCounter()
-    session['counter'] = session['counter'] + 1
-    
-    cart_session()
-    # session["cart"].append(dict({'product_id': dataset, 'qty': variable}))
-    # print("session[cart]: ", session["cart"])
-    if 'cart' in session:
-        print("CART IN SESSION: ", session['cart'])
-    else:
-        print("NEW CART!!!! ", session['cart'])
-    
-
-    titlediv = 'title' + str(session['counter'])
-    mapdiv = 'map' + str(session['counter'])
-    keydiv = 'key' + str(session['counter'])
-    print("################ COUNTER!!!!!!!!! ", session['counter'])
+    # sumSessionCounter()
+    # session['counter'] = session['counter'] + 1
     
 
     # pyferret.run('use ' + dataset)
-
-    
-    # session.clear()
-    # session['objects'].append(42)
-    # # so mark it as modified yourself
-    # session.modified = True
-    # print("############## session obj !!!!!!!!!!!!!!!: ", session['objects'])
-
-    return render_template('showmaps_dummy.html', command=command, variable=variable, dataset=dataset, counter=session['counter'], mapdiv=mapdiv, keydiv=keydiv,titlediv=titlediv)
+    return render_template('showmaps_dummy.html', cmdArray=cmdArray)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])

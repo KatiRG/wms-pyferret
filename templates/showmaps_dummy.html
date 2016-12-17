@@ -38,9 +38,6 @@
 	        <input type="submit" value="Submit" />
 	  	</form>
 	  	<br><br><br>
-
-	  	<p>mapdiv from session!!! {{mapdiv}}</p>
-	  	<p>counter from session!!! {{counter}}</p>
 	  	
 
 	  	<!-- Add map requested by user in form -->
@@ -50,11 +47,25 @@
 		   <div id='key0' class='key'><img /></div>
 		</div> -->
 
-		<div class='mapContainer'>
-		   <div id={{titlediv}} class='title'></div>
-		   <div id={{mapdiv}} class='map'></div>
-		   <div id={{keydiv}} class='key'><img /></div>
-		</div>
+		<!-- Add map requested by user in form -->
+		{% for aDict in cmdArray -%}		
+			<div class='mapContainer'>
+				Map number: {{loop.index}} <br>
+				dataset: {{aDict.dataset}}<br>
+			  	variable: {{aDict.variable}} <br>
+			  	command: {{aDict.command}}
+			  	{% if aDict.postvar %} 
+			  		({{aDict.postvar}})
+			  	{% endif %}
+			   <div id='title{{ loop.index }}' class='title'></div>
+			   <div id='map{{ loop.index }}' class='map'></div>
+			   <div id='key{{ loop.index }}' class='key'><img /></div>
+			</div>
+			<!-- <input type="submit" name="Save" value="save map"> -->
+			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
+			<a href="/timeseries" target="blank"><button class='btn btn-default'>Timeseries</button></a>
+		{% endfor -%}
+
 
 		
   		
@@ -68,29 +79,32 @@
 			var frontiers= [];
 
 			//===============================================
-			wmspyferret[{{counter}}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}', {
-				command: '{{ command }}',
-				variable: '{{ variable }}',
-			    	crs: crs,
-				format: 'image/png',
-				transparent: true,
-			    	uppercase: true
-			});
+			{% for aDict in cmdArray -%}
 
-			frontiers[{{counter}}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
-				layers: 'GCA:GCA_frontiersCountryAndRegions',
-				format: 'image/png',
-			    	crs: crs,
-				transparent: true
-			});
+				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}', {
+					command: '{{ aDict.command }}',
+					variable: '{{ aDict.variable }}',
+				    	crs: crs,
+					format: 'image/png',
+					transparent: true,
+				    	uppercase: true
+				});
 
-			map[{{counter}}] = L.map('map' + {{counter}}, {
-			    layers: [wmspyferret[{{counter}}], frontiers[{{counter}}]],
-			    crs: crs,
-			    center: [0,-40],
-			    zoom: 1,
-			    attributionControl: false
-			});
+				frontiers[{{ loop.index }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+					layers: 'GCA:GCA_frontiersCountryAndRegions',
+					format: 'image/png',
+				    	crs: crs,
+					transparent: true
+				});
+
+				map[{{ loop.index }}] = L.map('map{{ loop.index }}', {
+				    layers: [wmspyferret[{{ loop.index }}], frontiers[{{ loop.index }}]],
+				    crs: crs,
+				    center: [0,-40],
+				    zoom: 1,
+				    attributionControl: false
+				});
+			{% endfor %}
 
 			//===============================================
 			// Set up synchro between maps
@@ -117,9 +131,23 @@
 			// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
 			// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
-			$({{keydiv}}).children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
-									'&COMMAND=' + wmspyferret[{{counter}}].wmsParams.command +
-									'&VARIABLE=' + wmspyferret[{{counter}}].wmsParams.variable.replace('+','%2B'));
+			// $({{keydiv}}).children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dataset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+			// 						'&COMMAND=' + wmspyferret[{{counter}}].wmsParams.command +
+			// 						'&VARIABLE=' + wmspyferret[{{counter}}].wmsParams.variable.replace('+','%2B'));
+
+			{% for aDict in cmdArray -%}
+				// title0 = getTitle(wmspyferret[0].wmsParams.command, wmspyferret[0].wmsParams.variable.replace('%2B','+'));
+				// $('#title0').html(title1);
+				// $('#title0').attr('title', wmspyferret[0].wmsParams.command + ' ' + wmspyferret[0].wmsParams.variable.replace('%2B','+'));   
+				// $('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?SERVICE=WMS&REQUEST=GetColorBar' +
+				// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
+				// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
+
+				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
+			{% endfor %}
+			
 
 						
 
