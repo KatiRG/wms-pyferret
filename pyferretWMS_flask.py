@@ -163,7 +163,6 @@ def api_calcmaps():
         # #store img before erasing
         # session["img_cart"].append({'img': img})
         # imgArray = session['img_cart']
-        # print("imgArray: ", imgArray)
         os.remove(tmpdir + '/' + tmpname)
     
     resp = Response(iter(img), status=200, mimetype='image/png')
@@ -228,28 +227,30 @@ def calc_timeseries():
         # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
 
 
-        east = float(BDS.split(',',1)[0])
-        west = float(BDS.split(',',2)[1])
-        north = float(BDS.split(',',3)[2])
-        south = float(BDS.split(',',4)[3])        
-        print("east: ", east)
+        east = BDS.split(',',1)[0]
+        west = BDS.split(',',2)[1]
+        north = BDS.split(',',3)[2]
+        south = BDS.split(',',4)[3]
+        
 
         tmpname = 'somename.png'
+        tmpname_ts = tempfile.NamedTemporaryFile(suffix='.png').name
+        tmpname_ts = os.path.basename(tmpname)
+        print("*************** ts file: ", tmpdir + '/' + tmpname_ts)
 
         pyferret.run('use ' + DSET)
         pyferret.run('show data/all')
-        pyferret.run('plot ' + VARIABLE + '[x=20:160' + '@ave,y=' + '0:45@ave]')
-        # pyferret.run('plot ' + VARIABLE + '[x=' = east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+        pyferret.run('plot ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')        
         pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/' + tmpname +  '"')
         
 
         # pyferret.run('plot uwnd[x=20:160@ave,y=0:45@ave]')
-        # pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/somename.png' +  '"')
 
     if os.path.isfile(tmpdir + '/' + tmpname):
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()               
         ftmp.close()
+        # print("removing ", tmpdir + '/' + tmpname)
         os.remove(tmpdir + '/' + tmpname)
     
     resp = Response(iter(img), status=200, mimetype='image/png')
