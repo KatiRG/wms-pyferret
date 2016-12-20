@@ -55,7 +55,7 @@
 			</div>
 			<!-- <input type="submit" name="Save" value="save map"> -->
 			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
-			<a href="/timeseries" target="blank"><button class='btn btn-default'>Timeseries</button></a>
+			<div id="button_ts" class='btn btn-default'>Timeseries</div> 
 		{% endfor -%}
 
   		
@@ -96,10 +96,6 @@
 				});
 			{% endfor %}
 
-			//Get map bounds of current view
-			map0.on('moveend', function() { 
-			     console.log("bounds: ", map.getBounds());
-			});
 
 			//===============================================
 			// Set up synchro between maps
@@ -119,6 +115,29 @@
 			}
 
 			//===============================================
+			//Get leaflet map bounds (default view upon page load):
+			var bds=[]
+			bds = [
+				map[1].getBounds().getEast(),
+			    map[1].getBounds().getWest(),
+			    map[1].getBounds().getNorth(),
+			    map[1].getBounds().getSouth()
+			];
+			console.log("default bds: ", bds);
+
+			//bounds after zoom
+			map[1].on('moveend', function() {
+			    var east = map[1].getBounds().getEast(),
+			        west = map[1].getBounds().getWest(),
+			        north = map[1].getBounds().getNorth(),
+			        south = map[1].getBounds().getSouth();
+
+			    bds = [east, west, north, south];
+			    console.log("bds on zoom: ", bds);
+
+			});
+
+			//===============================================
 			{% for aDict in cmdArray -%}
 				// title0 = getTitle(wmspyferret[0].wmsParams.command, wmspyferret[0].wmsParams.variable.replace('%2B','+'));
 				// $('#title0').html(title1);
@@ -130,6 +149,16 @@
 				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
+				
+				console.log("bds in loop: ", bds);
+				$("#button_ts").click(function(){
+					console.log("bds in button: ", bds)
+					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&BDS=' + bds);
+					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
+  					return false;
+				});
+
+
 			{% endfor %}
 						
 

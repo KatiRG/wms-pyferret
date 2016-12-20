@@ -86,8 +86,8 @@ def api_calcmaps():
     tmpname = os.path.basename(tmpname)
 
     # pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
-    print("starting pyferret.........................")
-    pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
+    # print("starting pyferret.........................")
+    # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
     pyferret.run('use ' + DSET)
     pyferret.run('show data/all')
 
@@ -152,8 +152,8 @@ def api_calcmaps():
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
         # pyferret.run('cancel mode meta')
         print("*************** file: ", tmpdir + '/' + tmpname)
-        pyferret.stop()
-        print("...................stopping pyferret")
+        # pyferret.stop()
+        # print("...................stopping pyferret")
 
     if os.path.isfile(tmpdir + '/' + tmpname):
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
@@ -197,26 +197,64 @@ def download():
     #     response.headers["Content-Disposition"] = "attachment; filename=test.png"
     #     return response
     
-@app.route('/timeseries')
-def timeseries():
-    print("session img_cart: ", session["cart"])
+@app.route('/timeseries/<path:urlpath>')
+def render_timeseries(urlpath):
+    try:
+        url_split = urlpath.split("&", 2)
+        print("url_split: ", url_split)
+        mapnum=int(urlpath.split("&", 2)[0])
+        dset=str(urlpath.split("&", 2)[1])
+        variable=str(urlpath.split("&", 2)[2])
+        
+        return render_template("showts.html", urlpath=urlpath, mapnum=mapnum, dset=dset, variable=variable)
+    except Exception, e:
+        return(str(e))      
+             
+@app.route('/showts_resource', methods=['GET'])
+def calc_timeseries():
+    print("request.args in showts_resource: ", request.args)
 
-    # plot uwnd[x=20:160@ave,y=0:45@ave]
-    # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
+    if request.args.get('REQUEST') == 'CalcTimeseries':
+        BDS = str(request.args.get('amp;BDS')) #[east, west, north, south]
+        DSET = str(request.args.get('DSET'))
+        VARIABLE = str(request.args.get('VARIABLE'))
+        VARIABLE = VARIABLE.split('[', 1)[0]
+        print("GetTimeseries DSET: ", DSET)
+        print("GetTimeseries BDS: ", BDS)
+        print("GetTimeseries VARIABLE: ", VARIABLE)
 
-    # pyferret.run('plot uwnd[x=20:160@ave,y=0:45@ave]')
-    # pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/somename.png' +  '"')
+        #Calculate timeseries and return as PNG file
+        # plot uwnd[x=20:160@ave,y=0:45@ave]
+        # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
 
-    fname = 'somename.png'
-    # # send_from_directory(tmpdir, fname)
-    # # filename = 'http://localhost:8000/timeseries/' + fname
 
-    # return render_template('showts.html', cmdArray=session["cart"], filename=fname)
-    return render_template('showts.html', cmdArray=session["cart"], fname=fname) 
+        east = float(BDS.split(',',1)[0])
+        west = float(BDS.split(',',2)[1])
+        north = float(BDS.split(',',3)[2])
+        south = float(BDS.split(',',4)[3])        
+        print("east: ", east)
 
+        tmpname = 'somename.png'
+
+        pyferret.run('use ' + DSET)
+        pyferret.run('show data/all')
+        pyferret.run('plot ' + VARIABLE + '[x=20:160' + '@ave,y=' + '0:45@ave]')
+        # pyferret.run('plot ' + VARIABLE + '[x=' = east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+        pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/' + tmpname +  '"')
+        
+
+        # pyferret.run('plot uwnd[x=20:160@ave,y=0:45@ave]')
+        # pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/somename.png' +  '"')
+
+    if os.path.isfile(tmpdir + '/' + tmpname):
+        ftmp = open(tmpdir + '/' + tmpname, 'rb')
+        img = ftmp.read()               
+        ftmp.close()
+        os.remove(tmpdir + '/' + tmpname)
     
+    resp = Response(iter(img), status=200, mimetype='image/png')
+    return resp
 
- 
 
 #==============================================================
 def number_of_workers():
@@ -240,8 +278,8 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
     def __init__(self, app, options=None):
 
-	    # # Start pyferret	
-     #    pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
+	    # Start pyferret	
+        pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
 
     	master_pid = os.getpid()
     	print('---------> gunicorn master pid: ', master_pid)    
