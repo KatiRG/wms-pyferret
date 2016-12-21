@@ -19,7 +19,7 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request, Response, session
+from flask import Flask, render_template, make_response, request, Response, session, redirect, url_for
 # from app import index_add_counter
 
 #==============================================================
@@ -198,31 +198,61 @@ def edit_map(urlpath):
         url_split = urlpath.split("&")
         print("url_split: ", url_split)
         mapnum=int(urlpath.split("&")[0])
+        dset=str(urlpath.split("&")[1])
+        variable=str(urlpath.split("&")[2])
+        command=str(urlpath.split("&")[3])
+        postvar=str(urlpath.split("&")[4])
+
+        print("from URL: ", str(mapnum) + ", " + dset + ", " + variable)
 
         if request.method=='POST':
            
             print("POST request.form: ", request.form)
             print("request.form submit", request.form['submit_type'])
-            dset = str(request.form['dset'])
-            variable = str(request.form['mapvar'])
-            command = request.form['ferretcmd']
-            postvar = str(request.form['postvar'])
-
+            
             if request.form['submit_type'] == "Preview":
-                # return render_template("index.html")
+                dset = str(request.form['dset'])
+                variable = str(request.form['mapvar'])
+                command = request.form['ferretcmd']
+                postvar = str(request.form['postvar'])
+                
                 return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
 
             if request.form['submit_type'] == "Done":
-                return render_template("index.html")    
+                print("session[cart] before: ", session["cart"])
+                orig_dset = session['cart'][mapnum -1]['dset']
+                print("orig_dset: ", orig_dset)
 
-        else:
-            
-            dset=str(urlpath.split("&")[1])
-            variable=str(urlpath.split("&")[2])
-            command=str(urlpath.split("&")[3])
-            postvar=str(urlpath.split("&")[4])
+                # Add new map
+                session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+                print("session[cart] add new map: ", session["cart"])
 
+                # Remove old map
+                del session['cart'][mapnum -1]
+                print("session[cart] after del: ", session['cart'])
+                print("mapnum: ", mapnum)
+
+                # Remove old dataset from space
+                # http://ferret.pmel.noaa.gov/Ferret/documentation/users-guide/commands-reference/CANCEL
+                # yes? cancel data_set levitus_climatology
+                pyferret.run('cancel data_set levitus_climatology') #+ orig_dset)
+                pyferret.run('show data/all')
+
+                cmdArray = session['cart']
+                print("cmdArray: ", cmdArray)
+                
+                nbMaps = len(cmdArray)
+                listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+
+                #redirect back to previous page:
+                # http://flask.pocoo.org/snippets/62/
+                return render_template('showmaps.html', cmdArray=cmdArray, listSynchroMapsToSet=listSynchroMapsToSet)
+                
+                # return render_template("index.html")
+
+        else: #show original map to be edited            
             return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
+
     
     except Exception, e:
         return(str(e))  
