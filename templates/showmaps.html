@@ -30,7 +30,7 @@
 		
 		<!-- Request form to add map -->
 		<form action = "/" method = "POST">
-			<input type="text" name="dataset" size="55"> dataset (e.g. levitus_climatology) <br>
+			<input type="text" name="dset" size="55"> dataset (e.g. levitus_climatology) <br>
 			<input type="text" name="mapvar" size="55"> ferret variable (e.g. temp[k=@max])<br>
 	        <input type="text" name="ferretcmd" size="55"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
 	        <input type="text" name="postvar" size="55"> OPTIONAL: post-variable arguments (e.g. nav_lon, nav_lat)
@@ -43,7 +43,7 @@
 		{% for aDict in cmdArray -%}
 			<div class='mapContainer'>
 				Map number: {{loop.index}} <br>
-				dataset: {{aDict.dataset}}<br>
+				dataset: {{aDict.dset}}<br>
 			  	variable: {{aDict.variable}} <br>
 			  	command: {{aDict.command}}
 			  	{% if aDict.postvar %} 
@@ -72,7 +72,7 @@
 			//===============================================
 			{% for aDict in cmdArray -%}
 
-				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}', {
+				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}', {
 					command: '{{ aDict.command }}',
 					variable: '{{ aDict.variable }}',
 				    	crs: crs,
@@ -147,14 +147,14 @@
 				// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
 				// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
-				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dataset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
 				//Define timeseries button and pass paramteters to route
 				$("#button_ts").click(function(){
 					console.log("bds in button: ", bds)
-					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&' + bds);
+					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds);
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
   					return false;
 				});
@@ -162,7 +162,7 @@
 				//Define edit button and pass paramteters to route
 				$("#button_edit").click(function(){
 					displayFlag="editmap"
-					window.open('/edit/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&{{ aDict.command }}&' + displayFlag);
+					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}');
   					return false;
 				});
 

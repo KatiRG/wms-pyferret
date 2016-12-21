@@ -35,9 +35,7 @@ def session_management():
 
 @app.route('/test')
 def test_index():
-    print("***************** request.args in test_index: ", request.args)
-    
-    return render_template('index.html', message='')
+    return render_template('index.html')
 
 @app.route('/')
 def index():
@@ -48,21 +46,21 @@ def index():
 
     return render_template('mapform.html', displayFlag=displayFlag)
 
-dataset=''
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
-    print("***************** request.args in map_formhandler: ", request.args)
+    # print("request.form submit", request.form['submit'])
 
-    dataset = str(request.form['dataset'])
+    dset = str(request.form['dset'])
     variable = str(request.form['mapvar'])
     command = request.form['ferretcmd']
     postvar = str(request.form['postvar'])
-
-    session["cart"].append({'command': command, 'variable': variable, 'dataset': dataset, 'postvar': postvar})
+   
+   
+    session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
     cmdArray = session['cart']
     print("cmdArray: ", cmdArray)
-    
+
     nbMaps = len(cmdArray)
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
@@ -88,7 +86,7 @@ def api_calcmaps():
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
 
-    # pyferret.run('go ' + envScript) # load the environment (dataset to open + variables definition)
+    # pyferret.run('go ' + envScript) # load the environment (dset to open + variables definition)
     # print("starting pyferret.........................")
     # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
     pyferret.run('use ' + DSET)
@@ -193,19 +191,39 @@ def download_ts():
                      "attachment; filename=timeseries.csv"}
             )
    
-@app.route('/edit/<path:urlpath>')
+@app.route('/edit/<path:urlpath>', methods=['POST','GET'])
 def edit_map(urlpath):
     try:
         print("urlpath: ", urlpath)
         url_split = urlpath.split("&")
         print("url_split: ", url_split)
         mapnum=int(urlpath.split("&")[0])
-        dset=str(urlpath.split("&")[1])
-        variable=str(urlpath.split("&")[2])
-        command=str(urlpath.split("&")[3])        
-        displayFlag=str(urlpath.split("&")[4])
 
-        return render_template("mapform.html", mapnum=mapnum, dset=dset, variable=variable, command=command, displayFlag=displayFlag)
+        if request.method=='POST':
+           
+            print("POST request.form: ", request.form)
+            print("request.form submit", request.form['submit_type'])
+            dset = str(request.form['dset'])
+            variable = str(request.form['mapvar'])
+            command = request.form['ferretcmd']
+            postvar = str(request.form['postvar'])
+
+            if request.form['submit_type'] == "Preview":
+                # return render_template("index.html")
+                return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
+
+            if request.form['submit_type'] == "Done":
+                return render_template("index.html")    
+
+        else:
+            
+            dset=str(urlpath.split("&")[1])
+            variable=str(urlpath.split("&")[2])
+            command=str(urlpath.split("&")[3])
+            postvar=str(urlpath.split("&")[4])
+
+            return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
+    
     except Exception, e:
         return(str(e))  
 
