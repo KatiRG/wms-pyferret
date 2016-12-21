@@ -55,7 +55,7 @@
 			</div>
 			<!-- <input type="submit" name="Save" value="save map"> -->
 			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
-			<div id="button_ts" class='btn btn-default'>Timeseries</div> 
+			<div id="button_ts" class='btn btn-default'>Timeseries</div>
 		{% endfor -%}
 
   		
@@ -150,10 +150,10 @@
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
-				console.log("bds in loop: ", bds);
+				//Define timeseries button and pass paramteters to route
 				$("#button_ts").click(function(){
 					console.log("bds in button: ", bds)
-					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&BDS=' + bds);
+					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&' + bds);
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
   					return false;
 				});

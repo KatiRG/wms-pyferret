@@ -42,8 +42,7 @@ def index():
     session.clear()
     session['cart'] = [] #to store ferret commands
     session['img_cart'] = [] #to store img for later downloading
-    
-    
+
 
     return render_template('mapform.html')
 
@@ -171,20 +170,33 @@ def api_calcmaps():
 # Download map to file
 
 # http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
-@app.route('/download')
-def download():    
+@app.route('/download_ts')
+def download_ts():
+    csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
+            "1985/01/21","Douglas Adams",0345391802,5.95
+            "1990/01/12","Douglas Hofstadter",0465026567,9.95
+            "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
+            "1999/12/03","Richard Friedman",0060630353,5.95
+            "2004/10/04","Randel Helms",0879755725,4.50"""
+
+    return Response(
+        csv,
+        mimetype="text/csv",
+        headers={"Content-disposition":
+                 "attachment; filename=myplot.csv"}
+        )
     
-    my_var = session.get('my_var', None)
-    print("my_var in download: ", my_var)
+    # foo = session["foo"]
+    # print("my_var in download: ", foo)
 
     # png_img=session['img_cart']
 
-    # # csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
-    # #         "1985/01/21","Douglas Adams",0345391802,5.95
-    # #         "1990/01/12","Douglas Hofstadter",0465026567,9.95
-    # #         "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
-    # #         "1999/12/03","Richard Friedman",0060630353,5.95
-    # #         "2004/10/04","Randel Helms",0879755725,4.50"""
+    # csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
+    #         "1985/01/21","Douglas Adams",0345391802,5.95
+    #         "1990/01/12","Douglas Hofstadter",0465026567,9.95
+    #         "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
+    #         "1999/12/03","Richard Friedman",0060630353,5.95
+    #         "2004/10/04","Randel Helms",0879755725,4.50"""
 
 
     # # http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
@@ -195,66 +207,103 @@ def download():
     #     response = make_response(wsgi_app)
     #     response.headers["Content-Disposition"] = "attachment; filename=test.png"
     #     return response
+    return render_template("index.html")
     
 @app.route('/timeseries/<path:urlpath>')
 def render_timeseries(urlpath):
     try:
-        url_split = urlpath.split("&", 2)
+        print("urlpath: ", urlpath)
+        url_split = urlpath.split("&")
         print("url_split: ", url_split)
-        mapnum=int(urlpath.split("&", 2)[0])
-        dset=str(urlpath.split("&", 2)[1])
-        variable=str(urlpath.split("&", 2)[2])
+        mapnum=int(urlpath.split("&")[0])
+        dset=str(urlpath.split("&")[1])
+        variable=str(urlpath.split("&")[2])
+        bds = str(urlpath.split("&")[3])
+
+        # session["foo"] = []
         
-        return render_template("showts.html", urlpath=urlpath, mapnum=mapnum, dset=dset, variable=variable)
+        return render_template("showts.html", mapnum=mapnum, dset=dset, variable=variable, bds=bds)
     except Exception, e:
         return(str(e))      
              
 @app.route('/showts_resource', methods=['GET'])
 def calc_timeseries():
     print("request.args in showts_resource: ", request.args)
+    DOWNLOADTS = str(request.args.get('DOWNLOADTS'))
+    print("DOWNLOADTS: ", DOWNLOADTS)
 
-    if request.args.get('REQUEST') == 'CalcTimeseries':
-        BDS = str(request.args.get('amp;BDS')) #[east, west, north, south]
-        DSET = str(request.args.get('DSET'))
-        VARIABLE = str(request.args.get('VARIABLE'))
-        VARIABLE = VARIABLE.split('[', 1)[0]
-        print("GetTimeseries DSET: ", DSET)
-        print("GetTimeseries BDS: ", BDS)
-        print("GetTimeseries VARIABLE: ", VARIABLE)
+    # session["foo"]
+    # print("my_var in calc_timeseries: ", session["foo"])
 
-        #Calculate timeseries and return as PNG file
-        # plot uwnd[x=20:160@ave,y=0:45@ave]
-        # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
-
-
-        east = BDS.split(',',1)[0]
-        west = BDS.split(',',2)[1]
-        north = BDS.split(',',3)[2]
-        south = BDS.split(',',4)[3]
-        
-
-        tmpname = 'somename.png'
-        tmpname_ts = tempfile.NamedTemporaryFile(suffix='.png').name
-        tmpname_ts = os.path.basename(tmpname)
-        print("*************** ts file: ", tmpdir + '/' + tmpname_ts)
-
-        pyferret.run('use ' + DSET)
-        pyferret.run('show data/all')
-        pyferret.run('plot ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')        
-        pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/' + tmpname +  '"')
-        
-
-        # pyferret.run('plot uwnd[x=20:160@ave,y=0:45@ave]')
-
-    if os.path.isfile(tmpdir + '/' + tmpname):
-        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-        img = ftmp.read()               
-        ftmp.close()
-        # print("removing ", tmpdir + '/' + tmpname)
-        os.remove(tmpdir + '/' + tmpname)
     
-    resp = Response(iter(img), status=200, mimetype='image/png')
-    return resp
+    # if request.args.get('REQUEST') == 'CalcTimeseries':
+    BDS = str(request.args.get('BDS')) #[east, west, north, south]
+    DSET = str(request.args.get('DSET'))
+    VARIABLE = str(request.args.get('VARIABLE'))
+    VARIABLE = VARIABLE.split('[', 1)[0]
+    
+    print("GetTimeseries DSET: ", DSET)
+    print("GetTimeseries BDS: ", BDS)
+    print("GetTimeseries VARIABLE: ", VARIABLE)
+    
+
+    #Calculate timeseries and return as PNG file
+    # plot uwnd[x=20:160@ave,y=0:45@ave]
+    # list uwnd[x=20:160@ave,y=0:45@ave] !creates csv list
+
+
+    east = BDS.split(',',1)[0]
+    west = BDS.split(',',2)[1]
+    north = BDS.split(',',3)[2]
+    south = BDS.split(',',4)[3]
+    
+    tmpname = 'somename.png'
+    
+
+    pyferret.run('use ' + DSET)
+    pyferret.run('show data/all')
+    pyferret.run('plot ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')    
+    pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/' + tmpname +  '"')
+        
+    if request.args.get('DOWNLOADTS') == 'no':
+        
+        
+        if os.path.isfile(tmpdir + '/' + tmpname):
+            ftmp = open(tmpdir + '/' + tmpname, 'rb')
+            img = ftmp.read()               
+            ftmp.close()
+            # print("removing ", tmpdir + '/' + tmpname)
+            os.remove(tmpdir + '/' + tmpname)
+        
+        resp = Response(iter(img), status=200, mimetype='image/png')
+        return resp
+
+    else:
+        ts_csv = pyferret.run('list ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')        
+
+        csv = """"REVIEW_DATE","AUTHOR","ISBN","DISCOUNTED_PRICE"
+            "1985/01/21","Douglas Adams",0345391802,5.95
+            "1990/01/12","Douglas Hofstadter",0465026567,9.95
+            "1998/07/15","Timothy ""The Parser"" Campbell",0968411304,18.99
+            "1999/12/03","Richard Friedman",0060630353,5.95
+            "2004/10/04","Randel Helms",0879755725,4.50"""
+
+        return Response(
+            csv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+                     "attachment; filename=myplot.csv"}
+            )    
+
+        
+        # http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
+        # with open(csv, 'rb') as csv_file:
+        #     def wsgi_app(environ, start_response):
+        #         start_response('200 OK', [('Content-type', 'text/csv')])
+        #         return csv_file.read()
+        #     response = make_response(wsgi_app)
+        #     response.headers["Content-Disposition"] = "attachment; filename=test.csv"
+        #     return response
 
 
 #==============================================================
