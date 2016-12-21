@@ -35,20 +35,24 @@ def session_management():
 
 @app.route('/test')
 def test_index():
+    print("***************** request.args in test_index: ", request.args)
+    
     return render_template('index.html', message='')
 
 @app.route('/')
 def index():
     session.clear()
     session['cart'] = [] #to store ferret commands
-    session['img_cart'] = [] #to store img for later downloading
 
+    displayFlag="addmap"
 
-    return render_template('mapform.html')
+    return render_template('mapform.html', displayFlag=displayFlag)
 
 dataset=''
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
+
+    print("***************** request.args in map_formhandler: ", request.args)
 
     dataset = str(request.form['dataset'])
     variable = str(request.form['mapvar'])
@@ -106,14 +110,6 @@ def api_calcmaps():
                 area = im.crop(box)
                 area.save(tmpdir + '/' + tmpname, "PNG")
 
-                #store img before erasing
-                session["img_cart"] = tmpdir + '/key' + tmpname
-
-                # session['my_var'] = 'my_value222222222'
-                
-
-                print("session['img_cart'] in GetColorBar: ", session['img_cart'])
-                # print("session['cart'] in GetColorBar: ", session['cart'])
 
 
     elif request.args.get('REQUEST') == 'GetMap':
@@ -121,23 +117,15 @@ def api_calcmaps():
         #Define pyferret variables for 'REQUEST' == 'GetMap'
         BBOX = request.args.get('BBOX')
         BBOX = BBOX.split(',')
-        print("*************** BBOX: ", BBOX)
     
         WIDTH = int(request.args.get('WIDTH'))
         HEIGHT = int(request.args.get('HEIGHT'))
 
         HLIM = '/hlim=' + str(BBOX[0]) + ':' + str(BBOX[2])
         VLIM = '/vlim=' + str(BBOX[1]) + ':' + str(BBOX[3])
-        
-        # need to cycle through 6 BBOX coords
-        # bboxArray = [ [-90, 0, 0, 90], [0, 0, 90, 90], [-180, 0, -90, 90], [-90, -90, 0, 0], 
-        # [0, -90, 90, 0], [-180, -90, -90, 0] ]
-
-        # pyferret.run('use levitus_climatology') #to load a second dataset, then use d=2 in command line
-        #shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno temp[k=@min, d=1]
 
         pyferret.run('set window/aspect=1/outline=5')
-        pyferret.run('go margins 0 0 0 0')    
+        pyferret.run('go margins 0 0 0 0')
         
         #For saving to file
         # pyferret.run('set mode meta')
@@ -157,18 +145,13 @@ def api_calcmaps():
     if os.path.isfile(tmpdir + '/' + tmpname):
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
         img = ftmp.read()
-        ftmp.close()
-
-        # #store img before erasing
-        # session["img_cart"].append({'img': img})
-        # imgArray = session['img_cart']
+        ftmp.close()    
         os.remove(tmpdir + '/' + tmpname)
     
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
 
-# Download map to file
-
+# Download timeseries to file
 # http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
 @app.route('/download')
 def download_ts():
@@ -187,37 +170,45 @@ def download_ts():
         south = BDS.split(',',4)[3]
 
         pyferret.run('use ' + DSET)
-        junk='LIST/FILE=' + tmpdir + '/ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]'
-        print('junk: ', junk)
+        # junk='LIST/FILE=' + tmpdir + '/ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]'
+        # print('junk: ', junk)
         # http://ferret.pmel.noaa.gov/Ferret/documentation/users-guide/commands-reference/LIST
         #LIST/FILE=file.dat uwnd[x=20:160@ave,y=0:45@ave]
 
         # Store timeseries file in current working dir since saving to tmp dir gives error        
         pyferret.run('LIST/FILE=ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
-        
+        # pyferret.run('LIST/FILE=' + tmpdir + '/ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+
+        # pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
         ftmp = open('ts.dat', 'rb')
         ts_csv = ftmp.read()
         ftmp.close()    
 
+        # http://stackoverflow.com/questions/30024948/flask-download-a-csv-file-on-clicking-a-button
         return Response(
             ts_csv,
             mimetype="text/csv",
             headers={"Content-disposition":
                      "attachment; filename=timeseries.csv"}
             )
-        
+   
+@app.route('/edit/<path:urlpath>')
+def edit_map(urlpath):
+    try:
+        print("urlpath: ", urlpath)
+        url_split = urlpath.split("&")
+        print("url_split: ", url_split)
+        mapnum=int(urlpath.split("&")[0])
+        dset=str(urlpath.split("&")[1])
+        variable=str(urlpath.split("&")[2])
+        command=str(urlpath.split("&")[3])        
+        displayFlag=str(urlpath.split("&")[4])
 
-    # # http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
-    # with open(png_img, 'rb') as image_file:
-    #     def wsgi_app(environ, start_response):
-    #         start_response('200 OK', [('Content-type', 'image/png')])
-    #         return image_file.read()
-    #     response = make_response(wsgi_app)
-    #     response.headers["Content-Disposition"] = "attachment; filename=test.png"
-    #     return response
-    # return render_template("index.html")
-    
+        return render_template("mapform.html", mapnum=mapnum, dset=dset, variable=variable, command=command, displayFlag=displayFlag)
+    except Exception, e:
+        return(str(e))  
+
 @app.route('/timeseries/<path:urlpath>')
 def render_timeseries(urlpath):
     try:
@@ -227,7 +218,7 @@ def render_timeseries(urlpath):
         mapnum=int(urlpath.split("&")[0])
         dset=str(urlpath.split("&")[1])
         variable=str(urlpath.split("&")[2])
-        bds = str(urlpath.split("&")[3])        
+        bds = str(urlpath.split("&")[3])
         
         return render_template("showts.html", mapnum=mapnum, dset=dset, variable=variable, bds=bds)
     except Exception, e:
@@ -255,6 +246,8 @@ def calc_timeseries():
     # plot uwnd[x=20:160@ave,y=0:45@ave]
     pyferret.run('use ' + DSET)
     pyferret.run('show data/all')
+    # pyferret.run('set window/aspect=1/outline=5')
+    # pyferret.run('go margins 0 0 0 0')
     pyferret.run('plot ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')    
     pyferret.run('frame/format=PNG/transparent/xpixels=' + '256' + '/file="' + tmpdir + '/' + tmpname +  '"')
              

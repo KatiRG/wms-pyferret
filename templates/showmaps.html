@@ -35,12 +35,12 @@
 	        <input type="text" name="ferretcmd" size="55"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
 	        <input type="text" name="postvar" size="55"> OPTIONAL: post-variable arguments (e.g. nav_lon, nav_lat)
 	        <br><br>
-	        <input type="submit" value="Submit" />
+	        <input type="submit" value="Submit" class='btn btn-default'/>
 	  	</form>
 	  	<br><br><br>
 
 	  	<!-- Add map requested by user in form -->
-		{% for aDict in cmdArray -%}		
+		{% for aDict in cmdArray -%}
 			<div class='mapContainer'>
 				Map number: {{loop.index}} <br>
 				dataset: {{aDict.dataset}}<br>
@@ -56,6 +56,7 @@
 			<!-- <input type="submit" name="Save" value="save map"> -->
 			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
 			<div id="button_ts" class='btn btn-default'>Timeseries</div>
+			<div id="button_edit" class='btn btn-default'>Edit</div>
 		{% endfor -%}
 
   		
@@ -155,6 +156,13 @@
 					console.log("bds in button: ", bds)
 					window.open('/timeseries/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&' + bds);
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
+  					return false;
+				});
+
+				//Define edit button and pass paramteters to route
+				$("#button_edit").click(function(){
+					displayFlag="editmap"
+					window.open('/edit/{{loop.index}}&{{aDict.dataset}}&{{aDict.variable}}&{{ aDict.command }}&' + displayFlag);
   					return false;
 				});
 
