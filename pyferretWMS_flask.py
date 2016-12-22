@@ -49,6 +49,8 @@ def index():
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
+    print("session[cart] in map_formhandler: ", session['cart'])
+
     # print("request.form submit", request.form['submit'])
 
     dset = str(request.form['dset'])
@@ -217,45 +219,17 @@ def edit_map(urlpath):
                 postvar = str(request.form['postvar'])
                 
                 return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
-
-            if request.form['submit_type'] == "Done":
-                print("session[cart] before: ", session["cart"])
-                orig_dset = session['cart'][mapnum -1]['dset']
-                print("orig_dset: ", orig_dset)
-
-                # Add new map
-                session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-                print("session[cart] add new map: ", session["cart"])
-
-                # Remove old map
-                del session['cart'][mapnum -1]
-                print("session[cart] after del: ", session['cart'])
-                print("mapnum: ", mapnum)
-
-                # Remove old dataset from space
-                # http://ferret.pmel.noaa.gov/Ferret/documentation/users-guide/commands-reference/CANCEL
-                # yes? cancel data_set levitus_climatology
-                pyferret.run('cancel data_set levitus_climatology') #+ orig_dset)
-                pyferret.run('show data/all')
-
-                cmdArray = session['cart']
-                print("cmdArray: ", cmdArray)
-                
-                nbMaps = len(cmdArray)
-                listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
-
-                #redirect back to previous page:
-                # http://flask.pocoo.org/snippets/62/
-                return render_template('showmaps.html', cmdArray=cmdArray, listSynchroMapsToSet=listSynchroMapsToSet)
-                
-                # return render_template("index.html")
-
-        else: #show original map to be edited            
+            
+        else: #display chosen map to be edited            
             return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
-
     
     except Exception, e:
-        return(str(e))  
+        return(str(e))
+
+@app.route('/junk')
+def integrate_mainpage():
+    return redirect(url_for('test_index'))
+
 
 @app.route('/timeseries/<path:urlpath>')
 def render_timeseries(urlpath):

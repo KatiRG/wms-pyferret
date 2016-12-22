@@ -162,7 +162,7 @@
 				//Define edit button and pass paramteters to route
 				$("#button_edit").click(function(){
 					displayFlag="editmap"
-					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}');
+					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}', "_self");
   					return false;
 				});
 

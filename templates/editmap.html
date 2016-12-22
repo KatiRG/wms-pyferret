@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+    	<title>Slippymaps</title>
+    	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
+	    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+
+	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
+	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+
+	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'style.css') }}">
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">    
+	</head>
+
+	<body>
+   	<div class="container-fluid">
+
+   		<h2>Edit map</h2>
+
+   		Map paramters to edit:<br>
+		Map number: {{mapnum}} <br>
+		dataset: {{dset}}<br>
+	  	variable: {{variable}} <br>
+	  	command: {{command}}
+	  	{% if postvar %} 
+	  		({{postvar}})
+	  	{% endif %}
+	
+		<!-- Request form to add map -->
+		<form action = "/edit/{{mapnum}}&{{dset}}&{{variable}}&{{command}}&{{postvar}}" method = "POST">
+			<input type="text" name="dset" size="55"> dataset (e.g. levitus_climatology) <br>
+			<input type="text" name="mapvar" size="55"> ferret variable (e.g. temp[k=@max])<br>
+	        <input type="text" name="ferretcmd" size="55"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
+	        <input type="text" name="postvar" size="55"> OPTIONAL: post-variable arguments (e.g. nav_lon, nav_lat)
+	        <br><br>
+	        <input type="submit" name="submit_type" value="Preview" class='btn btn-default'/>
+	  	</form>
+	  	<br><br>
+		
+		<div class='mapContainer'>
+		   <div id='map{{ mapnum }}' class='map'></div>
+		   <div id='key{{ mapnum }}' class='key'><img /></div>
+		</div>
+		<br><br>
+		<!-- <input type="submit" name="submit_type" value="Done" class='btn btn-default'/> -->
+		<!-- <a href="/?&REQUEST=editedMap&MAPNUM={{mapnum}}' +
+		    				 '&DSET={{dset}}&VARIABLE={{variable}}"><button class='btn btn-default'>Done</a> -->
+	  	<!-- <a href="/junk" target="blank"><button class='btn btn-default'>Done</button></a> -->
+		<div id="button_done" class='btn btn-default'>Done</div>
+
+
+		<script type='text/javascript'>
+
+			//===============================================
+			var crs = L.CRS.EPSG4326;
+
+			var map = [];
+			var wmspyferret = [];
+			var frontiers= [];
+
+			//===============================================			
+
+			wmspyferret[{{ mapnum }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{dset}}&POSTVAR={{postvar}}', {
+				command: '{{ command }}',
+				variable: '{{ variable }}',
+			    	crs: crs,
+				format: 'image/png',
+				transparent: true,
+			    	uppercase: true
+			});
+
+			frontiers[{{ mapnum }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+				layers: 'GCA:GCA_frontiersCountryAndRegions',
+				format: 'image/png',
+			    	crs: crs,
+				transparent: true
+			});
+
+			map[{{ mapnum }}] = L.map('map{{ mapnum }}', {
+			    layers: [wmspyferret[{{ mapnum }}], frontiers[{{ mapnum }}]],
+			    crs: crs,
+			    center: [0,-40],
+			    zoom: 1,
+			    attributionControl: false
+			});		
+
+			//===============================================
+			$('#key{{ mapnum }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{dset}}&POSTVAR={{postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+									'&COMMAND=' + wmspyferret[{{ mapnum }}].wmsParams.command +
+									'&VARIABLE=' + wmspyferret[{{ mapnum }}].wmsParams.variable.replace('+','%2B'));
+
+			
+			//Define edit button and pass paramteters to route
+			$("#button_done").click(function(){
+				displayFlag="editmap"
+				window.open('/', "_self");
+					return false;
+			});
+		</script>
+
+
+  	</div> <!-- ./container --> 
+  </body>
+</html>
