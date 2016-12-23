@@ -57,6 +57,7 @@
 			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
 			<div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
 			<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
+			<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
 		{% endfor -%}
 
   		
@@ -97,23 +98,11 @@
 				});
 			{% endfor %}
 
-
 			//===============================================
 			// Set up synchro between maps
 			{% for synchro in listSynchroMapsToSet %}
 				map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
 			{% endfor %}
-
-			//===============================================
-			function getTitle(aCommand, aVariable) {
-				// Inspect command to get /title qualifier if present
-				m = aCommand.match(/title=([\w&]+)/);		// equivalent to search in python
-				if (m != null)
-					title = m[1]
-				else 
-					title = aVariable 
-				return title
-			}
 
 			//===============================================
 			//Get leaflet map bounds (default view upon page load):
@@ -142,18 +131,13 @@
 
 			//===============================================
 			{% for aDict in cmdArray -%}
-				// title0 = getTitle(wmspyferret[0].wmsParams.command, wmspyferret[0].wmsParams.variable.replace('%2B','+'));
-				// $('#title0').html(title1);
-				// $('#title0').attr('title', wmspyferret[0].wmsParams.command + ' ' + wmspyferret[0].wmsParams.variable.replace('%2B','+'));   
-				// $('#key0').children('img').attr('src', 'http://localhost:8000/showmaps_resource?SERVICE=WMS&REQUEST=GetColorBar' +
-				// 			'&COMMAND=' + wmspyferret[0].wmsParams.command +
-				// 			'&VARIABLE=' + wmspyferret[0].wmsParams.variable.replace('+','%2B'));
 
+				//Render map in div
 				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
-				//Define timeseries button and pass paramteters to route
+				//Define buttons and pass paramteters to route
 				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
 					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds);
@@ -161,13 +145,15 @@
   					return false;
 				});
 
-				//Define edit button and pass paramteters to route
 				$("#button{{loop.index}}_edit").click(function(){
-					displayFlag="editmap"
 					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}', "_self");
   					return false;
 				});
 
+				$("#button{{loop.index}}_delete").click(function(){
+					window.open('/?REQUEST=DeleteMap&MAPNUM={{loop.index}}&DSET={{aDict.dset}}&VARIABLE={{aDict.variable}}&COMMAND={{aDict.command}}&POSTVAR{{aDict.postvar}}', "_self");
+  					return false;
+				});
 
 			{% endfor %}
 						

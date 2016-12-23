@@ -42,7 +42,7 @@ def index():
     print("request.method in / !!!!!!!!!!!: ", request.method)
 
     if request.method =='GET':
-        if request.args.get('REQUEST') == 'SendToMainPage':
+        if request.args.get('REQUEST') == 'ReplaceMap' or request.args.get('REQUEST') == 'DeleteMap':
             print("Request from edit!!!: ", request.args)
             mapnum = int(request.args.get('MAPNUM')) 
             dset = str(request.args.get('DSET'))
@@ -50,28 +50,22 @@ def index():
             command = str(request.args.get('COMMAND'))
             variable = str(request.args.get('VARIABLE'))
 
-            print("session[cart] before del: ", session['cart'])
+            # Remove map from cart
             del session['cart'][mapnum -1]
-            print("session[cart] after del: ", session['cart'])
-            session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-            print("session[cart] after append: ", session['cart'])
 
-            nbMaps = len(session['cart'])
-            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+            # Add new map to cart
+            if request.args.get('REQUEST') == 'ReplaceMap':
+                session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
 
-        elif request.args.get('REQUEST') == 'CancelEdit':
-            print("Cancel edit!!!: ", session['cart'])
-            nbMaps = len(session['cart'])
-            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
-            return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
-
-        else:
+        elif not request.args: #initialize on start-up
             session.clear()
             session['cart'] = [] #to store ferret commands
             listSynchroMapsToSet = ''
             print("Initialized session[cart]: ", session['cart'])
 
     print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
+    nbMaps = len(session['cart'])
+    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
     return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
@@ -88,12 +82,6 @@ def map_formhandler():
         postvar = str(request.form['POSTVAR'])
         # Add form input to session variable   
         session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-        
-    elif request.method == 'GET':
-        print("GET method map_formhandler!!!!!!!!", request.args)
-    
-    # cmdArray = session['cart']
-    # print("cmdArray: ", cmdArray)
 
     nbMaps = len(session['cart'])    #len(cmdArray)
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
