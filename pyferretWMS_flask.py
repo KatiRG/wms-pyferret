@@ -59,6 +59,12 @@ def index():
             nbMaps = len(session['cart'])
             listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
+        elif request.args.get('REQUEST') == 'CancelEdit':
+            print("Cancel edit!!!: ", session['cart'])
+            nbMaps = len(session['cart'])
+            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+            return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
+
         else:
             session.clear()
             session['cart'] = [] #to store ferret commands
@@ -76,10 +82,10 @@ def map_formhandler():
 
     # print("request.form submit", request.form['submit'])
     if request.method =='POST':
-        dset = str(request.form['dset'])
-        variable = str(request.form['mapvar'])
-        command = request.form['ferretcmd']
-        postvar = str(request.form['postvar'])
+        dset = str(request.form['DSET'])
+        variable = str(request.form['VARIABLE'])
+        command = request.form['COMMAND']
+        postvar = str(request.form['POSTVAR'])
         # Add form input to session variable   
         session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
         

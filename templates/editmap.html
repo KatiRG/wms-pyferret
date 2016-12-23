@@ -54,6 +54,7 @@
 		    				 '&DSET={{dset}}&VARIABLE={{variable}}"><button class='btn btn-default'>Done</a> -->
 	  	<!-- <a href="/junk" target="blank"><button class='btn btn-default'>Done</button></a> -->
 		<div id="button_done" class='btn btn-default'>Done</div>
+		<div id="button_cancel" class='btn btn-default'>Cancel</div>
 
 
 		<script type='text/javascript'>
@@ -99,10 +100,16 @@
 			
 			//Define edit button and pass paramteters to route
 			$("#button_done").click(function(){
-				// window.open('/?MAPNUM={{mapnum}}&DSET={{dset}}&VARIABLE={{variable}}&COMMAND={{command}}&POSTVAR={{postvar}}', "_self");
 				window.open('/?REQUEST=SendToMainPage&MAPNUM={{mapnum}}&DSET={{dset}}&VARIABLE={{variable}}&COMMAND={{command}}&POSTVAR={{postvar}}', "_self");
 					return false;
 			});
+
+			//Define edit button and pass paramteters to route
+			$("#button_cancel").click(function(){
+				window.open('/?REQUEST=CancelEdit', "_self");
+					return false;
+			});
+
 		</script>
 
 
