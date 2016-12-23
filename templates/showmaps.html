@@ -140,7 +140,7 @@
 				//Define buttons and pass paramteters to route
 				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
-					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds);
+					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds, "_self");
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
   					return false;
 				});
