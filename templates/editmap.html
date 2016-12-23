@@ -99,8 +99,8 @@
 			
 			//Define edit button and pass paramteters to route
 			$("#button_done").click(function(){
-				displayFlag="editmap"
-				window.open('/', "_self");
+				// window.open('/?MAPNUM={{mapnum}}&DSET={{dset}}&VARIABLE={{variable}}&COMMAND={{command}}&POSTVAR={{postvar}}', "_self");
+				window.open('/?REQUEST=SendToMainPage&MAPNUM={{mapnum}}&DSET={{dset}}&VARIABLE={{variable}}&COMMAND={{command}}&POSTVAR={{postvar}}', "_self");
 					return false;
 			});
 		</script>

@@ -55,8 +55,8 @@
 			</div>
 			<!-- <input type="submit" name="Save" value="save map"> -->
 			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
-			<div id="button_ts" class='btn btn-default'>Timeseries</div>
-			<div id="button_edit" class='btn btn-default'>Edit</div>
+			<div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
+			<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
 		{% endfor -%}
 
   		
@@ -117,26 +117,28 @@
 
 			//===============================================
 			//Get leaflet map bounds (default view upon page load):
-			var bds=[]
-			bds = [
-				map[1].getBounds().getEast(),
-			    map[1].getBounds().getWest(),
-			    map[1].getBounds().getNorth(),
-			    map[1].getBounds().getSouth()
-			];
-			console.log("default bds: ", bds);
+			{% if cmdArray %}
+				var bds=[]
+				bds = [
+					map[1].getBounds().getEast(),
+				    map[1].getBounds().getWest(),
+				    map[1].getBounds().getNorth(),
+				    map[1].getBounds().getSouth()
+				];
+				console.log("default bds: ", bds);
 
-			//bounds after zoom
-			map[1].on('moveend', function() {
-			    var east = map[1].getBounds().getEast(),
-			        west = map[1].getBounds().getWest(),
-			        north = map[1].getBounds().getNorth(),
-			        south = map[1].getBounds().getSouth();
+				//bounds after zoom
+				map[1].on('moveend', function() {
+				    var east = map[1].getBounds().getEast(),
+				        west = map[1].getBounds().getWest(),
+				        north = map[1].getBounds().getNorth(),
+				        south = map[1].getBounds().getSouth();
 
-			    bds = [east, west, north, south];
-			    console.log("bds on zoom: ", bds);
+				    bds = [east, west, north, south];
+				    console.log("bds on zoom: ", bds);
 
-			});
+				});
+			{% endif %}	
 
 			//===============================================
 			{% for aDict in cmdArray -%}
@@ -152,7 +154,7 @@
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
 				//Define timeseries button and pass paramteters to route
-				$("#button_ts").click(function(){
+				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
 					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds);
 					// window.open('/timeseries/{{loop.index}}', 'window name', 'window settings');
@@ -160,7 +162,7 @@
 				});
 
 				//Define edit button and pass paramteters to route
-				$("#button_edit").click(function(){
+				$("#button{{loop.index}}_edit").click(function(){
 					displayFlag="editmap"
 					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}', "_self");
   					return false;

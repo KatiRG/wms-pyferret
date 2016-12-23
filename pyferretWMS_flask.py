@@ -32,41 +32,69 @@ def session_management():
     # make the session last indefinitely until it is cleared
     session.permanent = True
 
-
 @app.route('/test')
 def test_index():
     return render_template('index.html')
 
 @app.route('/')
 def index():
-    session.clear()
-    session['cart'] = [] #to store ferret commands
 
-    displayFlag="addmap"
+    print("request.method in / !!!!!!!!!!!: ", request.method)
 
-    return render_template('mapform.html', displayFlag=displayFlag)
+    if request.method =='GET':
+        if request.args.get('REQUEST') == 'SendToMainPage':
+            print("Request from edit!!!: ", request.args)
+            mapnum = int(request.args.get('MAPNUM')) 
+            dset = str(request.args.get('DSET'))
+            postvar = str(request.args.get('POSTVAR'))
+            command = str(request.args.get('COMMAND'))
+            variable = str(request.args.get('VARIABLE'))
+
+            print("session[cart] before del: ", session['cart'])
+            del session['cart'][mapnum -1]
+            print("session[cart] after del: ", session['cart'])
+            session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+            print("session[cart] after append: ", session['cart'])
+
+            nbMaps = len(session['cart'])
+            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+
+        else:
+            session.clear()
+            session['cart'] = [] #to store ferret commands
+            listSynchroMapsToSet = ''
+            print("Initialized session[cart]: ", session['cart'])
+
+    print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
+
+    return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
 
-    print("session[cart] in map_formhandler: ", session['cart'])
+    print("session[cart] in map_formhandler BEFORE: ", session['cart'])
 
     # print("request.form submit", request.form['submit'])
+    if request.method =='POST':
+        dset = str(request.form['dset'])
+        variable = str(request.form['mapvar'])
+        command = request.form['ferretcmd']
+        postvar = str(request.form['postvar'])
+        # Add form input to session variable   
+        session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+        
+    elif request.method == 'GET':
+        print("GET method map_formhandler!!!!!!!!", request.args)
+    
+    # cmdArray = session['cart']
+    # print("cmdArray: ", cmdArray)
 
-    dset = str(request.form['dset'])
-    variable = str(request.form['mapvar'])
-    command = request.form['ferretcmd']
-    postvar = str(request.form['postvar'])
-   
-   
-    session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-    cmdArray = session['cart']
-    print("cmdArray: ", cmdArray)
-
-    nbMaps = len(cmdArray)
+    nbMaps = len(session['cart'])    #len(cmdArray)
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
-    return render_template('showmaps.html', cmdArray=cmdArray, listSynchroMapsToSet=listSynchroMapsToSet)
+    print("session[cart] in map_formhandler AFTER: ", session['cart'])
+
+    return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
@@ -83,7 +111,6 @@ def api_calcmaps():
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
     VARIABLE = str(request.args.get('VARIABLE'))
-    print("############### DSET: ", DSET)
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
     tmpname = os.path.basename(tmpname)
@@ -92,7 +119,7 @@ def api_calcmaps():
     # print("starting pyferret.........................")
     # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
     pyferret.run('use ' + DSET)
-    pyferret.run('show data/all')
+    # pyferret.run('show data/all')
 
     if request.args.get('REQUEST') == 'GetColorBar':
 
@@ -103,7 +130,7 @@ def api_calcmaps():
                 pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
                 pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
-                print('tmpname: ', 'key' + tmpname)
+                # print('tmpname: ', 'key' + tmpname)
 
                 im = Image.open(tmpdir + '/key' + tmpname)
                 box = (0, 325, 400, 375)
@@ -138,7 +165,7 @@ def api_calcmaps():
         #For saving to file
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
         # pyferret.run('cancel mode meta')
-        print("*************** file: ", tmpdir + '/' + tmpname)
+        # print("*************** file: ", tmpdir + '/' + tmpname)
         # pyferret.stop()
         # print("...................stopping pyferret")
 
