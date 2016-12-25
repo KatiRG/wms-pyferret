@@ -322,3 +322,12 @@ En js: https://www.npmjs.com/package/wkhtmltoimage
 En python: https://pypi.python.org/pypi/wkhtmltopdf/0.2
 
 C'est ce qu'utilise WDD dans leur application Emissions du GCA
+
+Redirect back
+-------------
+http://flask.pocoo.org/snippets/62/
+
+Bokeh + flask
+--------------
+http://blog.thedataincubator.com/2015/09/painlessly-deploying-data-apps-with-bokeh-flask-and-heroku/
+http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf

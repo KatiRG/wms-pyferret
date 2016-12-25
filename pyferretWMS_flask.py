@@ -22,6 +22,14 @@ from PIL import Image
 from flask import Flask, render_template, make_response, request, Response, session, redirect, url_for
 # from app import index_add_counter
 
+import bokeh #0.12.3
+from bokeh.plotting import figure
+from bokeh.resources import CDN
+from bokeh.embed import file_html, components
+
+# http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf
+import random
+
 #==============================================================
 # Define flask app
 app = Flask(__name__)
@@ -248,8 +256,32 @@ def edit_map(urlpath):
         return(str(e))
 
 @app.route('/junk')
-def integrate_mainpage():
-    return redirect(url_for('test_index'))
+def bokehPlot():
+    # generate some random integers, sorted
+    exponent = .7 + random.random()*.6
+    dta = []
+    for i in range(50):
+        rnum = int((random.random()*10)**exponent)
+        dta.append(rnum)
+    y = sorted(dta)
+    x = range(len(y))
+
+    # generate Bokeh HTML elements
+    # create a `figure` object
+    p = figure(title='A Bokeh plot',
+        plot_width=500,plot_height=400)
+    # add the line
+    p.line(x,y)
+    # add axis labels
+    p.xaxis.axis_label = "time"
+    p.yaxis.axis_label = "size"
+    # create the HTML elements to pass to template
+    figJS,figDiv = components(p,CDN)
+
+    return (render_template('figures.html',
+        y=y,
+        figJS=figJS,figDiv=figDiv
+        ))
 
 
 @app.route('/timeseries/<path:urlpath>')
