@@ -331,3 +331,6 @@ Bokeh + flask
 --------------
 http://blog.thedataincubator.com/2015/09/painlessly-deploying-data-apps-with-bokeh-flask-and-heroku/
 http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf
+
+bokeh plot with dates:
+http://stackoverflow.com/questions/33869292/how-can-i-set-the-x-axis-as-datetimes-on-a-bokeh-plot

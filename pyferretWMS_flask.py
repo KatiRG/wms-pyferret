@@ -30,6 +30,14 @@ from bokeh.embed import file_html, components
 # http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf
 import random
 
+# For bokeh plots
+import pandas as pd
+import os
+import collections
+from datetime import datetime as dt
+from bokeh.models import DatetimeTickFormatter
+from math import pi
+
 #==============================================================
 # Define flask app
 app = Flask(__name__)
@@ -266,6 +274,9 @@ def bokehPlot():
     y = sorted(dta)
     x = range(len(y))
 
+    print("bokeh x: ", x)
+    print("bokeh y: ", y)
+
     # generate Bokeh HTML elements
     # create a `figure` object
     p = figure(title='A Bokeh plot',
@@ -283,6 +294,48 @@ def bokehPlot():
         figJS=figJS,figDiv=figDiv
         ))
 
+# http://stackoverflow.com/questions/33869292/how-can-i-set-the-x-axis-as-datetimes-on-a-bokeh-plot
+@app.route('/junk2')
+def bokehDatePlot():
+    df = pd.DataFrame(data=[1,2,3],
+                  index=[dt(2015, 1, 1), dt(2015, 1, 2), dt(2015, 1, 3)],
+                  columns=['foo'])
+
+    print("df: ", df)
+
+    # generate Bokeh HTML elements
+    # create a `figure` object
+    p = figure(title='A Bokeh plot',
+        plot_width=500,plot_height=400)
+    # add the line
+    x=df.index
+    y=df['foo']
+    print("x: ", x)
+    print("y: ", y)
+    p.line(x, y)
+
+    # add axis labels
+    # p.xaxis.axis_label = "time"
+    p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
+        hours=["%d %B %Y"],
+        days=["%d %B %Y"],
+        months=["%d %B %Y"],
+        years=["%d %B %Y"],
+    ))
+    p.xaxis.major_label_orientation = pi/4
+    
+
+
+    p.yaxis.axis_label = "size"
+
+
+    # create the HTML elements to pass to template
+    figJS,figDiv = components(p,CDN)
+
+    return (render_template('figures.html',
+        y=y,
+        figJS=figJS,figDiv=figDiv
+        ))
 
 @app.route('/timeseries/<path:urlpath>')
 def render_timeseries(urlpath):
