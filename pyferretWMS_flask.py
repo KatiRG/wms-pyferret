@@ -22,18 +22,16 @@ from PIL import Image
 from flask import Flask, render_template, make_response, request, Response, session, redirect, url_for
 # from app import index_add_counter
 
-import bokeh #0.12.3
-from bokeh.plotting import figure
-from bokeh.resources import CDN
-from bokeh.embed import file_html, components
 
 # http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf
 import random
 
 # For bokeh plots
 import pandas as pd
-import os
-import collections
+import bokeh #0.12.3
+from bokeh.plotting import figure
+from bokeh.resources import CDN
+from bokeh.embed import file_html, components
 from datetime import datetime as dt
 from bokeh.models import DatetimeTickFormatter
 from math import pi
@@ -116,7 +114,6 @@ def api_calcmaps():
     # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
     # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
     
-    
     DSET = str(request.args.get('DSET'))
     POSTVAR = str(request.args.get('POSTVAR'))
     COMMAND = str(request.args.get('COMMAND'))
@@ -146,8 +143,6 @@ def api_calcmaps():
                 box = (0, 325, 400, 375)
                 area = im.crop(box)
                 area.save(tmpdir + '/' + tmpname, "PNG")
-
-
 
     elif request.args.get('REQUEST') == 'GetMap':
         
@@ -274,9 +269,6 @@ def bokehPlot():
     y = sorted(dta)
     x = range(len(y))
 
-    print("bokeh x: ", x)
-    print("bokeh y: ", y)
-
     # generate Bokeh HTML elements
     # create a `figure` object
     p = figure(title='A Bokeh plot',
@@ -301,8 +293,6 @@ def bokehDatePlot():
                   index=[dt(2015, 1, 1), dt(2015, 1, 2), dt(2015, 1, 3)],
                   columns=['foo'])
 
-    print("df: ", df)
-
     # generate Bokeh HTML elements
     # create a `figure` object
     p = figure(title='A Bokeh plot',
@@ -323,11 +313,7 @@ def bokehDatePlot():
         years=["%d %B %Y"],
     ))
     p.xaxis.major_label_orientation = pi/4
-    
-
-
     p.yaxis.axis_label = "size"
-
 
     # create the HTML elements to pass to template
     figJS,figDiv = components(p,CDN)
@@ -350,7 +336,7 @@ def render_timeseries(urlpath):
         
         return render_template("showts.html", mapnum=mapnum, dset=dset, variable=variable, bds=bds)
     except Exception, e:
-        return(str(e))      
+        return(str(e))
              
 @app.route('/showts_resource', methods=['GET'])
 def calc_timeseries():
@@ -387,6 +373,67 @@ def calc_timeseries():
     
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
+
+@app.route('/ts/<path:urlpath>')
+def bokeh_ts(urlpath):
+    try:
+        print("urlpath: ", urlpath)
+        url_split = urlpath.split("&")
+        print("url_split: ", url_split)
+        mapnum=int(urlpath.split("&")[0])
+        dset=str(urlpath.split("&")[1])
+        variable=str(urlpath.split("&")[2])
+        bds = str(urlpath.split("&")[3])
+
+        east = bds.split(',',1)[0]
+        west = bds.split(',',2)[1]
+        north = bds.split(',',3)[2]
+        south = bds.split(',',4)[3]
+
+        pyferret.run('use ' + dset)
+        
+        # Store timeseries file in current working dir since saving to tmp dir gives error        
+        pyferret.run('LIST/FILE=ts.csv ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+        
+        # Extract x and y values from file for plotting
+        df = pd.read_csv('timeseries.csv', delimiter=':', skiprows=5)
+        # Extract date string from col 0
+        s = df.ix[:, 0]
+        x = s.str.split(' /').str.get(0).str.split(' ').str.get(1)
+        # Convert to datetime
+        x_date = pd.to_datetime(x,infer_datetime_format=True)
+
+        # Define y values
+        y = df.ix[:, 1]
+
+        # Put x and y values in dataframe
+        dfer = pd.DataFrame()
+        dfer['date'] = x_date
+        dfer['value'] = y
+
+        # Bokeh plot
+        p = figure(title='A Bokeh plot',
+                    plot_width=700,plot_height=400)
+        p.line(dfer['date'], dfer['value'])
+        p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
+            hours=["%d %B %Y"],
+            days=["%d %B %Y"],
+            months=["%d %B %Y"],
+            years=["%d %B %Y"],
+        ))
+        p.xaxis.major_label_orientation = pi/4
+        p.yaxis.axis_label = "value" #put variable
+
+        # create the HTML elements to pass to template
+        figJS,figDiv = components(p,CDN)
+
+        return (render_template('ts_bokeh.html',
+            y=dfer['value'],
+            figJS=figJS,figDiv=figDiv
+            ))
+
+    except Exception, e:
+        return(str(e))          
 
     
 #==============================================================
