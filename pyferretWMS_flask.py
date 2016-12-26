@@ -403,16 +403,17 @@ def bokeh_ts(urlpath):
         # Convert to datetime
         x_date = pd.to_datetime(x,infer_datetime_format=True)
 
-        # Define y values
-        y = df.ix[:, 1]
+        # # Define y values
+        # y = df.ix[:, 1]
 
         # Put x and y values in dataframe
         dfer = pd.DataFrame()
         dfer['date'] = x_date
-        dfer['value'] = y
+        dfer['value'] = df.ix[:, 1]
 
         # Bokeh plot
-        p = figure(title='A Bokeh plot',
+        title='Average timeseries for ' + dset + ' (' + east + 'E-' + west + 'W, ' + south + 'S-' + north + 'N)'
+        p = figure(title=title,
                     plot_width=700,plot_height=400)
         p.line(dfer['date'], dfer['value'])
         p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
@@ -422,7 +423,7 @@ def bokeh_ts(urlpath):
             years=["%d %B %Y"],
         ))
         p.xaxis.major_label_orientation = pi/4
-        p.yaxis.axis_label = "value" #put variable
+        p.yaxis.axis_label = "avg " + variable
 
         # create the HTML elements to pass to template
         figJS,figDiv = components(p,CDN)
