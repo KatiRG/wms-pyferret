@@ -134,7 +134,7 @@ def api_calcmaps():
                 # pyferret.run('set window/aspect=.7')
                 pyferret.run('go margins 2 4 3 3')
                 pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-                pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)-1`, 1, 1.25 ; ppl shade')
+                pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)+0`, 1, 1.25 ; ppl shade')
                 pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
 
                 # print('tmpname: ', 'key' + tmpname)

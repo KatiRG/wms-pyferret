@@ -2,21 +2,23 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-    	<title>Slippymaps</title>
+    	<title>Slippymaps</title>		
+
+    	<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'style.css') }}">
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">
+
     	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
 	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
 	    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
 
 	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
 	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
-
 	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
 
-		<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'style.css') }}">
 
-		<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">    
 	</head>
 
 	<body>
@@ -49,15 +51,16 @@
 			  	{% if aDict.postvar %} 
 			  		({{aDict.postvar}})
 			  	{% endif %}
-			   <div id='title{{ loop.index }}' class='title'></div>
-			   <div id='map{{ loop.index }}' class='map'></div>
-			   <div id='key{{ loop.index }}' class='key'><img /></div>
+				<div id='title{{ loop.index }}' class='title'></div>
+			    <div id='map{{ loop.index }}' class='map'></div>
+			    <div id='key{{ loop.index }}' class='key'><img /></div>
+			    <p></p>
+			    <div id="button{{loop.index}}_ts" class='tsbutton btn btn-default'>Timeseries</div>
+				<div id="button{{loop.index}}_edit" class='editbutton btn btn-default'>Edit</div>
+				<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
 			</div>
-			<!-- <input type="submit" name="Save" value="save map"> -->
-			<!-- <a href="/download" target="blank"><button class='btn btn-default'>Download</button></a> -->
-			<div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
-			<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
-			<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
+			
+			
 		{% endfor -%}
 
   		
