@@ -64,12 +64,21 @@ def index():
             command = str(request.args.get('COMMAND'))
             variable = str(request.args.get('VARIABLE'))
 
-            # Remove map from cart
-            del session['cart'][mapnum -1]
+            print("session[cart] before anything: ", session['cart'])
 
-            # Add new map to cart
+            # Replace same map with edited params
             if request.args.get('REQUEST') == 'ReplaceMap':
-                session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+                # session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+                session['cart'][mapnum-1]['dset'] = dset
+                session['cart'][mapnum-1]['variable'] = variable
+                session['cart'][mapnum-1]['command'] = command
+                session['cart'][mapnum-1]['postvar'] = postvar
+                print('replaced session[cart]: ', session['cart'])
+
+            # Delete requested map from session[cart]
+            elif request.args.get('REQUEST') == 'DeleteMap':
+                del session['cart'][mapnum -1]
+                print('session[cart] after del: ', session['cart'])
 
         elif not request.args: #initialize on start-up
             session.clear()
