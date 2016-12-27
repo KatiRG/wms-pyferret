@@ -1,0 +1,26 @@
+             VARIABLE : TEMPERATURE (DEG C)
+             FILENAME : levitus_climatology.cdf
+             FILEPATH : /homel/cnangini/.conda/envs/FERRET/share/fer_dsets/data/
+             SUBSET   : 20 points (DEPTH (m))
+             LONGITUDE: 110.4W(-110.4) to 30.2E(30.2) (XY ave)
+             LATITUDE : 70.3S to 70.3N (XY ave)
+ 0       /  1:  17.32
+ 10      /  2:  17.25
+ 20      /  3:  17.07
+ 30      /  4:  16.76
+ 50      /  5:  15.84
+ 75      /  6:  14.67
+ 100     /  7:  13.72
+ 150     /  8:  12.39
+ 200     /  9:  11.36
+ 300     / 10:   9.83
+ 400     / 11:   8.57
+ 600     / 12:   6.44
+ 800     / 13:   5.06
+ 1000    / 14:   4.25
+ 1200    / 15:   3.81
+ 1500    / 16:   3.31
+ 2000    / 17:   2.75
+ 3000    / 18:   2.10
+ 4000    / 19:   1.58
+ 5000    / 20:   1.39

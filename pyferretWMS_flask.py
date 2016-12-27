@@ -85,6 +85,16 @@ def index():
             session['cart'] = [] #to store ferret commands
             listSynchroMapsToSet = ''
             print("Initialized session[cart]: ", session['cart'])
+            
+            # print("current wdir: ", os.getcwd())
+            # session['foodir'] = tempfile.mkdtemp()
+            # print("initial dir: ", session['foodir'])
+            # # 
+            # # tmpdir = tempfile.mkdtemp()
+            # # print('Temporary directory to remove: ', tmpdir)
+            # os.chdir(session['foodir'])
+            # print("current wdir after cd: ", os.getcwd())
+
 
     print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
     nbMaps = len(session['cart'])
@@ -122,6 +132,13 @@ def api_calcmaps():
     # ('HEIGHT', u'256'), ('SRS', u'EPSG:4326'), ('VERSION', u'1.1.1'), 
     # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
     # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
+
+    # os.chdir(session['foodir'])
+    # print("current wdir in api: ", os.getcwd())
+    # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
+    # print("pyferret started for each worker")
+    # print("show data in api")
+    # pyferret.run('show data/all')
     
     DSET = str(request.args.get('DSET'))
     POSTVAR = str(request.args.get('POSTVAR'))
@@ -132,10 +149,9 @@ def api_calcmaps():
     tmpname = os.path.basename(tmpname)
 
     # pyferret.run('go ' + envScript) # load the environment (dset to open + variables definition)
-    # print("starting pyferret.........................")
-    # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
     pyferret.run('use ' + DSET)
-    # pyferret.run('show data/all')
+   
+    pyferret.run('show data/all')
 
     if request.args.get('REQUEST') == 'GetColorBar':
 
@@ -192,11 +208,15 @@ def api_calcmaps():
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
 
-
-   
 @app.route('/edit/<path:urlpath>', methods=['POST','GET'])
 def edit_map(urlpath):
     try:
+        # os.chdir(session['foodir'])
+        # print("current wdir in edit: ", os.getcwd())
+        # print("show data in edit")
+        # pyferret.run('show data/all')
+
+
         print("urlpath: ", urlpath)
         url_split = urlpath.split("&")
         print("url_split: ", url_split)
@@ -258,25 +278,38 @@ def bokeh_ts(urlpath):
         # Extract date string from col 0
         s = df.ix[:, 0]
         x = s.str.split(' /').str.get(0).str.split(' ').str.get(1)
-        # Convert to datetime
-        x_date = pd.to_datetime(x,infer_datetime_format=True)
+
+        # Determine if x-col is a list of dates
+        months=['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+        dateFlag=0
+        for idx in range(12):
+            if x[0].find(months[idx]) != -1:
+                print("found month")
+                dateFlag=1
+
+        if dateFlag==1:
+            # Convert to datetime
+            x = pd.to_datetime(x, infer_datetime_format=True)
 
         # Put x and y values in dataframe
         dfer = pd.DataFrame()
-        dfer['date'] = x_date
-        dfer['value'] = df.ix[:, 1]
+        dfer['xval'] = x
+        dfer['yval'] = df.ix[:, 1]
 
         # Bokeh plot
         title='Average timeseries for ' + dset + ' (' + east + 'E-' + west + 'W, ' + south + 'S-' + north + 'N)'
         p = figure(title=title,
                     plot_width=700,plot_height=400)
-        p.line(dfer['date'], dfer['value'])
-        p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
-            hours=["%d %B %Y"],
-            days=["%d %B %Y"],
-            months=["%d %B %Y"],
-            years=["%d %B %Y"],
-        ))
+        p.line(dfer['xval'], dfer['yval'])
+
+        # format axes
+        if dateFlag==1:
+            p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
+                hours=["%d %B %Y"],
+                days=["%d %B %Y"],
+                months=["%d %B %Y"],
+                years=["%d %B %Y"],
+            ))
         p.xaxis.major_label_orientation = pi/4
         p.yaxis.axis_label = "avg " + variable
 
@@ -284,7 +317,7 @@ def bokeh_ts(urlpath):
         figJS,figDiv = components(p,CDN)
 
         return (render_template('ts_bokeh.html',
-            y=dfer['value'],
+            y=dfer['yval'],
             figJS=figJS,figDiv=figDiv,
             tmpname=tmpname
             ))
@@ -324,6 +357,8 @@ class myArbiter(gunicorn.arbiter.Arbiter):
     def halt(self):
 	# Close pyferret
         pyferret.stop()
+
+        print("current wdir before exit: ", os.getcwd())
 
     	print('Removing temporary directory: ', tmpdir)
     	shutil.rmtree(tmpdir)
@@ -418,8 +453,8 @@ serverOnly = options.serverOnly
 # Global variables
 nbMaps = 0
 cmdArray = []
+tmpdir = []
 tmpdir = tempfile.mkdtemp()
-
 print('Temporary directory to remove: ', tmpdir)
 
 #------------------------------------------------------
