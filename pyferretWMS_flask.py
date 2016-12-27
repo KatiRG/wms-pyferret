@@ -183,47 +183,7 @@ def api_calcmaps():
     resp = Response(iter(img), status=200, mimetype='image/png')
     return resp
 
-# Download timeseries to file
-# http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
-@app.route('/download')
-def download_ts():
-    print("request.args in download_ts: ", request.args)
 
-    if request.args.get('REQUEST') == 'SaveTimeseries':
-        BDS = str(request.args.get('BDS')) #[east, west, north, south]
-        DSET = str(request.args.get('DSET'))
-        VARIABLE = str(request.args.get('VARIABLE'))
-        VARIABLE = VARIABLE.split('[', 1)[0]
-
-
-        east = BDS.split(',',1)[0]
-        west = BDS.split(',',2)[1]
-        north = BDS.split(',',3)[2]
-        south = BDS.split(',',4)[3]
-
-        pyferret.run('use ' + DSET)
-        # junk='LIST/FILE=' + tmpdir + '/ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]'
-        # print('junk: ', junk)
-        # http://ferret.pmel.noaa.gov/Ferret/documentation/users-guide/commands-reference/LIST
-        #LIST/FILE=file.dat uwnd[x=20:160@ave,y=0:45@ave]
-
-        # Store timeseries file in current working dir since saving to tmp dir gives error        
-        pyferret.run('LIST/FILE=ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
-        # pyferret.run('LIST/FILE=' + tmpdir + '/ts.dat ' + VARIABLE + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
-
-        # pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
-
-        ftmp = open('ts.dat', 'rb')
-        ts_csv = ftmp.read()
-        ftmp.close()    
-
-        # http://stackoverflow.com/questions/30024948/flask-download-a-csv-file-on-clicking-a-button
-        return Response(
-            ts_csv,
-            mimetype="text/csv",
-            headers={"Content-disposition":
-                     "attachment; filename=timeseries.csv"}
-            )
    
 @app.route('/edit/<path:urlpath>', methods=['POST','GET'])
 def edit_map(urlpath):
@@ -377,12 +337,10 @@ def calc_timeseries():
 @app.route('/ts/<path:urlpath>')
 def bokeh_ts(urlpath):
     try:
-        print("urlpath: ", urlpath)
         url_split = urlpath.split("&")
-        print("url_split: ", url_split)
         mapnum=int(urlpath.split("&")[0])
         dset=str(urlpath.split("&")[1])
-        variable=str(urlpath.split("&")[2])
+        variable=str(urlpath.split("&")[2]).split('[', 1)[0]
         bds = str(urlpath.split("&")[3])
 
         east = bds.split(',',1)[0]
@@ -391,20 +349,24 @@ def bokeh_ts(urlpath):
         south = bds.split(',',4)[3]
 
         pyferret.run('use ' + dset)
-        
-        # Store timeseries file in current working dir since saving to tmp dir gives error        
-        pyferret.run('LIST/FILE=ts.csv ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
-        
-        # Extract x and y values from file for plotting
-        df = pd.read_csv('timeseries.csv', delimiter=':', skiprows=5)
+
+        tmpname = tempfile.NamedTemporaryFile(suffix='.csv').name
+        tmpname = os.path.basename(tmpname)
+    
+        # Store timeseries file in current working dir for now
+        pyferret.run('LIST/FILE=ts.csv' + ' ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+       
+        # Read in csv file
+        df = pd.read_csv('ts.csv', delimiter=':', skiprows=5)
+
+        # Move csv file to tmpdir with tmpname (for later downloading if desired)
+        shutil.move('ts.csv', tmpdir + "/" + tmpname)
+
         # Extract date string from col 0
         s = df.ix[:, 0]
         x = s.str.split(' /').str.get(0).str.split(' ').str.get(1)
         # Convert to datetime
         x_date = pd.to_datetime(x,infer_datetime_format=True)
-
-        # # Define y values
-        # y = df.ix[:, 1]
 
         # Put x and y values in dataframe
         dfer = pd.DataFrame()
@@ -430,12 +392,34 @@ def bokeh_ts(urlpath):
 
         return (render_template('ts_bokeh.html',
             y=dfer['value'],
-            figJS=figJS,figDiv=figDiv
+            figJS=figJS,figDiv=figDiv,
+            tmpname=tmpname
             ))
 
     except Exception, e:
         return(str(e))          
 
+# Download timeseries to file
+# http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
+@app.route('/download')
+def download_ts():
+    print("request.args in download_ts: ", request.args)
+
+    if request.args.get('REQUEST') == 'SaveTimeseries':
+        
+        fname = request.args.get('FILENAME')
+
+        ftmp = open(tmpdir + '/' + fname, 'rb')
+        ts_csv = ftmp.read()
+        ftmp.close()
+        
+        # http://stackoverflow.com/questions/30024948/flask-download-a-csv-file-on-clicking-a-button
+        return Response(
+            ts_csv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+                     "attachment; filename=timeseries.csv"}
+            )
     
 #==============================================================
 def number_of_workers():
@@ -450,9 +434,6 @@ class myArbiter(gunicorn.arbiter.Arbiter):
 
     	print('Removing temporary directory: ', tmpdir)
     	shutil.rmtree(tmpdir)
-
-        #REMOVE TS FILE IN ROOT DIR -- HACK
-        os.remove('ts.dat')
 
         super(myArbiter, self).halt()
 
