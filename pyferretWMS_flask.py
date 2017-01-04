@@ -146,7 +146,7 @@ def api_calcmaps():
     VARIABLE = str(request.args.get('VARIABLE'))
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-    tmpname = os.path.basename(tmpname)
+    tmpname = os.path.basename(tmpname)    
 
     # pyferret.run('go ' + envScript) # load the environment (dset to open + variables definition)
     pyferret.run('use ' + DSET)
@@ -264,16 +264,13 @@ def bokeh_ts(urlpath):
         pyferret.run('use ' + dset)
 
         tmpname = tempfile.NamedTemporaryFile(suffix='.csv').name
-        tmpname = os.path.basename(tmpname)
+        tmpname = os.path.basename(tmpname)        
     
-        # Store timeseries file in current working dir for now
-        pyferret.run('LIST/FILE=ts.csv' + ' ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')
+        # Store timeseries file in current working dir for now                
+        pyferret.run('list/file="' + tmpdir + '/' + tmpname + '"' + ' ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')       
        
-        # Read in csv file
-        df = pd.read_csv('ts.csv', delimiter=':', skiprows=5)
-
-        # Move csv file to tmpdir with tmpname (for later downloading if desired)
-        shutil.move('ts.csv', tmpdir + "/" + tmpname)
+        # Read in csv file        
+        df = pd.read_csv(tmpdir + '/' + tmpname, delimiter=':', skiprows=5)
 
         # Extract date string from col 0
         s = df.ix[:, 0]
