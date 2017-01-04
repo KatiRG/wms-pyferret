@@ -1,0 +1,7 @@
+ ! NOAA/PMEL TMAP
+ ! PyFERRET v7 (opt)
+ ! Linux 3.13.0-91-generic - 08/15/16
+ ! 28-Nov-16 11:09     
+
+use levitus_climatology
+set window/aspect=1/outline=0

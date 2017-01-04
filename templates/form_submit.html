@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+    	<title>Stressors</title>
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'style.css') }}">
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">    
+	</head>
+   
+
+   <body>
+   	<div class="container-fluid">
+      <h1>Changes in stressor intensity</h1>
+
+      <p>Choose a scenario. Changes in variables SST, pH, O2 and productivity will be displayed below.</p>
+
+      <form action = "{{ url_for('hello') }}" method = "post">			
+			<input type="radio" name="scenario" value="rcp2.6"> RCP 2.6
+	        <input type="radio" name="scenario" value="rcp4.5"> RCP 4.5
+	        <input type="radio" name="scenario" value="rcp6"> RCP 6.0
+	        <input type="radio" name="scenario" value="rcp8.5"> RCP 8.5
+        <br><br>
+        <input type="submit" value="Submit" />
+	  </form>
+
+	  <br>
+
+    </div> <!-- ./container --> 
+   	
+   </body>
+</html>
