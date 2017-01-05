@@ -315,7 +315,7 @@ save png: http://stackoverflow.com/questions/7877282/how-to-send-image-generated
 using jquery: http://codepen.io/anon/pen/RWraBJ plus:
 - http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
 - http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
-- http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
+- http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js (this is to place rectangles; replace "L.rectangle(zones[0].area).addTo(thismap)" with "L.imageOverlay(imageUrl, imageBounds).addTo(thismap);")
 - http://gis.stackexchange.com/questions/186131/placing-controls-outside-map-container-with-leaflet
 
 From Patrick, save capture d'ecran:

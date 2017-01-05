@@ -55,7 +55,6 @@
 			  	{% endif %}
 				<div id='title{{ loop.index }}' class='title'></div>
 			    <div id='map{{ loop.index }}' class='map'></div>
-			    <div id='key{{ loop.index }}' class='key'><img /></div>
 			    <div id='colourbar{{ loop.index }}' class='key leaflet-bottom leaflet-control-layers leaflet-control' style="display:none"><img /></div>
 			    <p></p>
 			    <div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
@@ -116,9 +115,8 @@
 			{% endfor %}
 
 			function addColourBarToLeaflet(colourbarElement, thismap, thisbar, idx) {
-				// combination of http://codepen.io/anon/pen/RWraBJ and
-				// http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
-				console.log("addColourBarToLeaflet")				
+			
+				// from http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
 			
 				var bds = [
 					thismap.getBounds().getEast(),
@@ -129,25 +127,25 @@
 
 				var zones = [
 				      {
-				        element: clockTorontoElement, // Using the HTML Element for now.
+				        element: colourbarElement, // Using the HTML Element for now.
 				        width: parseInt(window.getComputedStyle(colourbarElement, null).getPropertyValue("width"), 10),
 				        area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
 				        //[lat_south, lon_west], [lat_north, lon_east]
 				        // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
 				      }
 				];
+				console.log("zones: ", zones)
+				
+				console.log("zones[0]: ", zones[0])
 				
 
 				// Initialization
 				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
-				    firstCorner = controlsContainer.firstChild,
-				    mapContainerWidth;
+				    firstCorner = controlsContainer.firstChild;
+				    // mapContainerWidth;
 
-				console.log("controlsContainer: ", controlsContainer)
-
-				// Add colourbar to leaflet map div
-				// L.rectangle(zones[0].area).addTo(thismap);
 				
+				// Add colourbar image URL to leaflet map div
 				// http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
 				// var imageUrl = 'http://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
 				// imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
@@ -201,11 +199,6 @@
 			//===============================================
 			{% for aDict in cmdArray -%}
 
-				//Render map in div
-				// $('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
-				// 						'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
-				// 						'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
-				
 				//Define buttons and pass paramteters to route
 				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
@@ -228,89 +221,12 @@
 				$("#button{{loop.index}}_save").click(function(){
 					console.log("saving map ", map{{loop.index}})
 			        $('#map{{loop.index}}').print();
-
-			  //       // http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
-				 // 	var clockTorontoElement = L.DomUtil.get("key{{loop.index}}"),
-					   
-					//     zones = [
-					//       {
-					//         element: clockTorontoElement, // Using the HTML Element for now.
-					//         width: parseInt(window.getComputedStyle(clockTorontoElement, null).getPropertyValue("width"), 10),
-					//         area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
-					//         //[lat_south, lon_west], [lat_north, lon_east]
-					//         // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
-					//       }
-					//     ],
-					//     thismap = map[{{loop.index}}];
-
-					// // Initialization
-					// var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
-					//     firstCorner = controlsContainer.firstChild,
-					//     mapContainerWidth;
-
-					// // Applying the zones.
-					// for (var i = 0; i < zones.length; i += 1) {
-					//   setZone(zones[i]);
-					// }
-
-					// // Save/print
-					// console.log("saving map")
-					// $('#map{{loop.index}}').print();
-
-
-					// function setZone(zoneData) {
-					//   // Visualize the area.
-					//   L.rectangle(zoneData.area).addTo(thismap);
-					//   // L.rectangle(zoneData.area).addTo(map);
-					//   console.log("width: " + zoneData.width);
-
-					//   controlsContainer.insertBefore(zoneData.element, firstCorner);
-
-					//   thismap.on("move resize", function () {
-					//     updateZone(zoneData);
-					//   });
-					//   updateZone(zoneData);
-					  
-					// }
-
-					// function updateZone(zoneData) {
-					//   var mapBounds = thismap.getBounds(),
-					//       zoneArea = zoneData.area,
-					//       style = zoneData.element.style;
-
-					//   if (mapBounds.intersects(zoneArea)) {
-					//     style.display = "block";
-
-					//     var hcenterLng = getIntersectionHorizontalCenter(mapBounds, zoneArea),
-					//         hcenter = isNaN(hcenterLng) ? 0 : thismap.latLngToContainerPoint([0, hcenterLng]).x;
-
-					//     // Update Element position.
-					//     // Could be refined to keep the entire Element visible, rather than cropping it.
-					//     style.left = (hcenter - (zoneData.width / 2)) + "px";
-					//   } else {
-					//     style.display = "none";
-					//   }
-					// }
-
-					// function getIntersectionHorizontalCenter(bounds1, bounds2) {
-					//   var west1 = bounds1.getWest(),
-					//       west2 = bounds2.getWest(),
-					//       westIn = west1 < west2 ? west2 : west1,
-					//       east1 = bounds1.getEast(),
-					//       east2 = bounds2.getEast(),
-					//       eastIn = east1 < east2 ? east1 : east2;
-
-					//   return (westIn + eastIn) / 2;
-					// }
-
-
-			    
 			    });
 
 			{% endfor %}
-						
 
-			
+
+
 		</script>
 
 
