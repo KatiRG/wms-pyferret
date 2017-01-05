@@ -125,24 +125,20 @@
 				    thismap.getBounds().getSouth()
 				];
 
-				var zones = [
+				var zones = 
 				      {
 				        element: colourbarElement, // Using the HTML Element for now.
 				        width: parseInt(window.getComputedStyle(colourbarElement, null).getPropertyValue("width"), 10),
 				        area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
 				        //[lat_south, lon_west], [lat_north, lon_east]
 				        // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
-				      }
-				];
-				console.log("zones: ", zones)
+				      };
 				
-				console.log("zones[0]: ", zones[0])
-				
+				console.log("zones: ", zones)				
 
 				// Initialization
 				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
 				    firstCorner = controlsContainer.firstChild;
-				    // mapContainerWidth;
 
 				
 				// Add colourbar image URL to leaflet map div
@@ -154,12 +150,12 @@
 				L.imageOverlay(imageUrl, imageBounds).addTo(thismap);
 
 
-				// Turn colourbar display on
+				// Turn colourbar display on and position it
 			  	jQuery(thisbar).attr("style", "display:block");
 			  	jQuery(thisbar).attr("style", "position:relative; top: 354px; left: 30px;");
 			  	
 			  	// Add to leaflet map container otherwise will not be included in img save
-			  	controlsContainer.insertBefore(zones[0].element, firstCorner); 
+			  	controlsContainer.insertBefore(zones.element, firstCorner); 
 
 		
 
