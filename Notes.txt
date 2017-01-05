@@ -312,6 +312,8 @@ Image save
 save csv file: http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
 save png: http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
 
+using leaflet + jquery: http://codepen.io/anon/pen/RWraBJ
+
 From Patrick, save capture d'ecran:
 
 L'outil qui sert à récupérer une image ou un pdf d'un site.
