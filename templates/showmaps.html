@@ -18,6 +18,8 @@
 	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
 	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
 
+	    <script type = "text/javascript"
+		    src = "{{ url_for('static', filename = 'printing/jQuery.print.js') }}"></script>
 
 	</head>
 
@@ -54,9 +56,11 @@
 				<div id='title{{ loop.index }}' class='title'></div>
 			    <div id='map{{ loop.index }}' class='map'></div>
 			    <div id='key{{ loop.index }}' class='key'><img /></div>
+			    <div id='colourbar{{ loop.index }}' class='key leaflet-bottom leaflet-control-layers leaflet-control' style="display:none"><img /></div>
 			    <p></p>
-			    <div id="button{{loop.index}}_ts" class='tsbutton btn btn-default'>Timeseries</div>
-				<div id="button{{loop.index}}_edit" class='editbutton btn btn-default'>Edit</div>
+			    <div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
+				<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
+				<div id="button{{loop.index}}_save" class='btn btn-default'>Save</div>
 				<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
 			</div>
 			
@@ -99,7 +103,69 @@
 				    zoom: 1,
 				    attributionControl: false
 				});
+				
+
+				$('#colourbar{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
+
+				var clockTorontoElement = L.DomUtil.get("colourbar{{loop.index}}");
+				addColourBarToLeaflet(clockTorontoElement, map[{{loop.index}}], 
+					colourbar{{loop.index}}, {{ loop.index }});
+
 			{% endfor %}
+
+			function addColourBarToLeaflet(colourbarElement, thismap, thisbar, idx) {
+				// combination of http://codepen.io/anon/pen/RWraBJ and
+				// http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
+				console.log("addColourBarToLeaflet")				
+			
+				var bds = [
+					thismap.getBounds().getEast(),
+				    thismap.getBounds().getWest(),
+				    thismap.getBounds().getNorth(),
+				    thismap.getBounds().getSouth()
+				];
+
+				var zones = [
+				      {
+				        element: clockTorontoElement, // Using the HTML Element for now.
+				        width: parseInt(window.getComputedStyle(colourbarElement, null).getPropertyValue("width"), 10),
+				        area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
+				        //[lat_south, lon_west], [lat_north, lon_east]
+				        // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
+				      }
+				];
+				
+
+				// Initialization
+				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
+				    firstCorner = controlsContainer.firstChild,
+				    mapContainerWidth;
+
+				console.log("controlsContainer: ", controlsContainer)
+
+				// Add colourbar to leaflet map div
+				// L.rectangle(zones[0].area).addTo(thismap);
+				
+				// http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
+				// var imageUrl = 'http://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
+				// imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
+				var imageUrl = $(thisbar).find('img').attr('src'),    	
+				    imageBounds = [ [bds[0], bds[2]], [bds[0] + 1, bds[2] + 1] ];
+				L.imageOverlay(imageUrl, imageBounds).addTo(thismap);
+
+
+				// Turn colourbar display on
+			  	jQuery(thisbar).attr("style", "display:block");
+			  	jQuery(thisbar).attr("style", "position:relative; top: 354px; left: 30px;");
+			  	
+			  	// Add to leaflet map container otherwise will not be included in img save
+			  	controlsContainer.insertBefore(zones[0].element, firstCorner); 
+
+		
+
+			};
 
 			//===============================================
 			// Set up synchro between maps
@@ -136,9 +202,9 @@
 			{% for aDict in cmdArray -%}
 
 				//Render map in div
-				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
-										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
-										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
+				// $('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+				// 						'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+				// 						'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
 				//Define buttons and pass paramteters to route
 				$("#button{{loop.index}}_ts").click(function(){
@@ -157,6 +223,89 @@
 					window.open('/?REQUEST=DeleteMap&MAPNUM={{loop.index}}&DSET={{aDict.dset}}&VARIABLE={{aDict.variable}}&COMMAND={{aDict.command}}&POSTVAR{{aDict.postvar}}', "_self");
   					return false;
 				});
+
+				// http://codepen.io/anon/pen/RWraBJ
+				$("#button{{loop.index}}_save").click(function(){
+					console.log("saving map ", map{{loop.index}})
+			        $('#map{{loop.index}}').print();
+
+			  //       // http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
+				 // 	var clockTorontoElement = L.DomUtil.get("key{{loop.index}}"),
+					   
+					//     zones = [
+					//       {
+					//         element: clockTorontoElement, // Using the HTML Element for now.
+					//         width: parseInt(window.getComputedStyle(clockTorontoElement, null).getPropertyValue("width"), 10),
+					//         area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
+					//         //[lat_south, lon_west], [lat_north, lon_east]
+					//         // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
+					//       }
+					//     ],
+					//     thismap = map[{{loop.index}}];
+
+					// // Initialization
+					// var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
+					//     firstCorner = controlsContainer.firstChild,
+					//     mapContainerWidth;
+
+					// // Applying the zones.
+					// for (var i = 0; i < zones.length; i += 1) {
+					//   setZone(zones[i]);
+					// }
+
+					// // Save/print
+					// console.log("saving map")
+					// $('#map{{loop.index}}').print();
+
+
+					// function setZone(zoneData) {
+					//   // Visualize the area.
+					//   L.rectangle(zoneData.area).addTo(thismap);
+					//   // L.rectangle(zoneData.area).addTo(map);
+					//   console.log("width: " + zoneData.width);
+
+					//   controlsContainer.insertBefore(zoneData.element, firstCorner);
+
+					//   thismap.on("move resize", function () {
+					//     updateZone(zoneData);
+					//   });
+					//   updateZone(zoneData);
+					  
+					// }
+
+					// function updateZone(zoneData) {
+					//   var mapBounds = thismap.getBounds(),
+					//       zoneArea = zoneData.area,
+					//       style = zoneData.element.style;
+
+					//   if (mapBounds.intersects(zoneArea)) {
+					//     style.display = "block";
+
+					//     var hcenterLng = getIntersectionHorizontalCenter(mapBounds, zoneArea),
+					//         hcenter = isNaN(hcenterLng) ? 0 : thismap.latLngToContainerPoint([0, hcenterLng]).x;
+
+					//     // Update Element position.
+					//     // Could be refined to keep the entire Element visible, rather than cropping it.
+					//     style.left = (hcenter - (zoneData.width / 2)) + "px";
+					//   } else {
+					//     style.display = "none";
+					//   }
+					// }
+
+					// function getIntersectionHorizontalCenter(bounds1, bounds2) {
+					//   var west1 = bounds1.getWest(),
+					//       west2 = bounds2.getWest(),
+					//       westIn = west1 < west2 ? west2 : west1,
+					//       east1 = bounds1.getEast(),
+					//       east2 = bounds2.getEast(),
+					//       eastIn = east1 < east2 ? east1 : east2;
+
+					//   return (westIn + eastIn) / 2;
+					// }
+
+
+			    
+			    });
 
 			{% endfor %}
 						

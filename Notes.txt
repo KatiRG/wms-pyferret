@@ -312,7 +312,11 @@ Image save
 save csv file: http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
 save png: http://stackoverflow.com/questions/7877282/how-to-send-image-generated-by-pil-to-browser
 
-using leaflet + jquery: http://codepen.io/anon/pen/RWraBJ
+using jquery: http://codepen.io/anon/pen/RWraBJ plus:
+- http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
+- http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
+- http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
+- http://gis.stackexchange.com/questions/186131/placing-controls-outside-map-container-with-leaflet
 
 From Patrick, save capture d'ecran:
 
