@@ -33,7 +33,7 @@
 
 		
 		<!-- Request form to add map -->
-		<form action = "/maps" method = "POST">
+		<form action = "/" method = "POST">
 			<input type="text" name="DSET" size="55"> dataset (e.g. levitus_climatology) <br>
 			<input type="text" name="VARIABLE" size="55"> ferret variable (e.g. temp[k=@max])<br>
 	        <input type="text" name="COMMAND" size="55"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
@@ -79,7 +79,7 @@
 			//===============================================
 			{% for aDict in cmdArray -%}
 
-				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/maps/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}', {
+				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}', {
 					command: '{{ aDict.command }}',
 					variable: '{{ aDict.variable }}',
 				    	crs: crs,
@@ -104,7 +104,7 @@
 				});
 				
 
-				$('#colourbar{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/maps/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+				$('#colourbar{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));			
 

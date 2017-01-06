@@ -65,43 +65,21 @@ def index_maps():
     print("request.method in / !!!!!!!!!!!: ", request.method)
 
     if request.method =='GET':
-        if request.args.get('REQUEST') == 'ReplaceMap' or request.args.get('REQUEST') == 'DeleteMap':
-            print("Request from edit!!!: ", request.args)
-            mapnum = int(request.args.get('MAPNUM')) 
-            dset = str(request.args.get('DSET'))
-            postvar = str(request.args.get('POSTVAR'))
-            command = str(request.args.get('COMMAND'))
-            variable = str(request.args.get('VARIABLE'))
-
-            print("session[cart] before anything: ", session['cart'])
-
-            # Replace same map with edited params
-            if request.args.get('REQUEST') == 'ReplaceMap':
-                # session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-                session['cart'][mapnum-1]['dset'] = dset
-                session['cart'][mapnum-1]['variable'] = variable
-                session['cart'][mapnum-1]['command'] = command
-                session['cart'][mapnum-1]['postvar'] = postvar
-                print('replaced session[cart]: ', session['cart'])
-
-            # Delete requested map from session[cart]
-            elif request.args.get('REQUEST') == 'DeleteMap':
-                del session['cart'][mapnum -1]
-                print('session[cart] after del: ', session['cart'])
-
-        elif not request.args: #initialize on start-up
+        if not request.args: #initialize on start-up
             session.clear()
             session['cart'] = [] #to store ferret commands
-            listSynchroMapsToSet = ''
+            nbMaps = 4   #len(cmdArray)
+            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
             print("Initialized session[cart]: ", session['cart'])
             
           
-
+    # session['cart'] = [{'variable': 'temp[k=@max]', 'dset': 'levitus_climatology', 'postvar': '', 'command': u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'}]
+    session['cart'] = [1,2,3,4]
     print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
-    nbMaps = len(session['cart'])
-    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+    print("listSynchroMapsToSet: ", listSynchroMapsToSet)
 
-    return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
+
+    return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 @app.route('/maps', methods = ['POST', 'GET'])
 def map_formhandler():
