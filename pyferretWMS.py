@@ -38,11 +38,15 @@ def handler_app(environ, start_response):
 
         	pyferret.run('go ' + envScript)                 # load the environment (dataset to open + variables definition)
 
+		try:
+        		MASK = fields['MASK']
+		except:
+        		MASK = None
+
                 tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
                 tmpname = os.path.basename(tmpname)
 
-		#print(fields['REQUEST'] + ': ' + COMMAND + ' ' + VARIABLE)
-
+		#---------------------------------------------------------
 		if fields['REQUEST'] == 'GetColorBar':
                 	pyferret.run('set window/aspect=1/outline=0')
                 	pyferret.run('go margins 2 4 3 3')
@@ -55,6 +59,7 @@ def handler_app(environ, start_response):
                 	area = im.crop(box)
                 	area.save(tmpdir + '/' + tmpname, "PNG")
 
+		#---------------------------------------------------------
 		elif fields['REQUEST'] == 'GetMap':
         		WIDTH = int(fields['WIDTH'])
         		HEIGHT = int(fields['HEIGHT'])
@@ -70,18 +75,26 @@ def handler_app(environ, start_response):
                 	pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
                 	pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
 
+	        	if os.path.isfile(tmpdir + '/' + tmpname):
+				if MASK:
+					img = Image.open(tmpdir + '/' + tmpname)
+	        	        	mask = Image.open(MASK)
+					img = Image.composite(img, mask, mask)
+					img.save(tmpdir + '/' + tmpname)
+	
+		#---------------------------------------------------------
 		else:
 			raise
 
-                if os.path.isfile(tmpdir + '/' + tmpname):
-                        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-                        img = ftmp.read()
-                        ftmp.close()
-                        os.remove(tmpdir + '/' + tmpname)
-      
-                start_response('200 OK', [('content-type', 'image/png')])
-                return iter(img) 
-    
+		if os.path.isfile(tmpdir + '/' + tmpname):
+			ftmp = open(tmpdir + '/' + tmpname, 'rb')
+			img = ftmp.read()
+			ftmp.close()
+			os.remove(tmpdir + '/' + tmpname)
+
+		start_response('200 OK', [('content-type', 'image/png')])
+		return iter(img) 
+
         except:
                 return iter('Exception caught')
 
@@ -115,14 +128,14 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
     		instance_WMS_Client = Template(template_WMS_client())
     		instance_NW_Package = Template(template_nw_package())
 
-    		with open(tmpdir + '/index.html', 'wb') as f:
-        			f.write(instance_WMS_Client.render(cmdArray=cmdArray, gunicornPID=master_pid, 
-    							   listSynchroMapsToSet=listSynchroMapsToSet,
-    							   mapWidth=mapWidth, mapHeight=mapHeight, 
-    							   mapCenter=mapCenter, mapZoom=mapZoom))
-    		with open(tmpdir + '/package.json', 'wb') as f:
-        			f.write(instance_NW_Package.render(nbMaps=nbMaps,
-    							   mapWidth=mapWidth, mapHeight=mapHeight))
+		with open(tmpdir + '/index.html', 'wb') as f:
+    			f.write(instance_WMS_Client.render(cmdArray=cmdArray, gunicornPID=master_pid, 
+							   listSynchroMapsToSet=listSynchroMapsToSet,
+							   mapWidth=mapWidth, mapHeight=mapHeight, 
+							   mapCenter=mapCenter, mapZoom=mapZoom, port=port))
+		with open(tmpdir + '/package.json', 'wb') as f:
+    			f.write(instance_NW_Package.render(nbMaps=nbMaps,
+							   mapWidth=mapWidth, mapHeight=mapHeight))
 
     		# Launch NW.js
         	proc = subprocess.Popen(['nw', tmpdir], shell=True)
@@ -166,10 +179,10 @@ def template_WMS_client():
     <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
     <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
 
-    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
-    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.css' />
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.js'></script>
 
-    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
+    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/master/L.Map.Sync.js'></script>
 
     <style type='text/css'>
         html, body { font-family: 'arial' }
@@ -225,7 +238,7 @@ var frontiers= [];
 
 {% for aDict in cmdArray -%}
 //===============================================
-wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000', {
+wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:{{ port }}', {
 	command: '{{ aDict.command }}',
 	variable: '{{ aDict.variable }}',
     	crs: crs,
@@ -233,7 +246,7 @@ wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000', {
 	transparent: true,
     	uppercase: true
 });
-frontiers[{{ loop.index }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+frontiers[{{ loop.index }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org/geoserver/GCA/wms', {
 	layers: 'GCA:GCA_frontiersCountryAndRegions',
 	format: 'image/png',
     	crs: crs,
@@ -271,7 +284,7 @@ function getTitle(aCommand, aVariable) {
 title{{ loop.index }} = getTitle(wmspyferret[{{ loop.index }}].wmsParams.command, wmspyferret[{{ loop.index }}].wmsParams.variable.replace('%2B','+'));
 $('#title{{ loop.index }}').html(title{{ loop.index }});   
 $('#title{{ loop.index }}').attr('title', wmspyferret[{{ loop.index }}].wmsParams.command + ' ' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('%2B','+'));   
-$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
+$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:{{ port }}/?SERVICE=WMS&REQUEST=GetColorBar' +
 							'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
 							'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 {% endfor %}
@@ -298,7 +311,7 @@ $('#commandLine').on('keypress', function(e) {
 	title = getTitle(command, variable);
         $('#title'+mapId).html(title);   
         $('#title'+mapId).attr('title', command + ' ' + variable);
-	$('#key'+mapId).children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
+	$('#key'+mapId).children('img').attr('src', 'http://localhost:{{ port }}/?SERVICE=WMS&REQUEST=GetColorBar' +
 							'&COMMAND=' + command +
 							'&VARIABLE=' + variable.replace('+','%2B'));
     }
@@ -338,8 +351,9 @@ def template_nw_package():
 from optparse import OptionParser
 
 #------------------------------------------------------
-usage = "%prog [--env=script.jnl] [--width=400] [--height=400] [--size=value] [--center=[0,0]] [--zoom=1] [--server]" + \
-	"\n                              'cmd/qualifiers variable; cmd/qualifiers variable'" + \
+usage = "%prog [--width=400] [--height=400] [--size=value] [--center=[0,0]] [--zoom=1]" + \
+	"\n                      [--env=pyferretWMS.jnl] [--server] [--port=8000]" + \
+	"\n                      'cmd/qualifiers variable; cmd/qualifiers variable'" + \
 	"\n\n'cmd/qualifiers variable' is a classic ferret call (no space allowed except to" + \
 	"\nseparate the variable from the command and its qualifiers). The semi-colon character ';'" +\
 	"\nis the separator between commands and will determine the number of maps to be drawn." + \
@@ -348,7 +362,7 @@ usage = "%prog [--env=script.jnl] [--width=400] [--height=400] [--size=value] [-
 	"\nFor this, you can use the HTML code '&nbsp' for the non-breaking space (without the ending semi-colon)." + \
 	"\nFor example: 'shade/lev=20/title=Simulation&nbspA varA; shade/lev=20/title=Simulation&nbspB varB'"
 
-version = "%prog 0.9.5"
+version = "%prog 0.9.6"
 
 #------------------------------------------------------
 parser = OptionParser(usage=usage, version=version)
@@ -367,6 +381,8 @@ parser.add_option("--zoom", type="int", dest="zoom", default=1,
 		help="Initial zoom of maps (default=1)")
 parser.add_option("--server", dest="serverOnly", action="store_true", default=False,
 		help="Server only (default=False)")
+parser.add_option("--port", type="int", dest="port", default=8000,
+		help="Server port number (default=8000)")
 
 (options, args) = parser.parse_args()
 
@@ -381,6 +397,7 @@ mapCenter = options.center
 mapZoom = options.zoom
 envScript = options.envScript
 serverOnly = options.serverOnly
+port = options.port
 
 #------------------------------------------------------
 # Global variables
@@ -434,7 +451,7 @@ else:
 
 #------------------------------------------------------
 options = {
-    'bind': '%s:%s' % ('127.0.0.1', '8000'),
+    'bind': '%s:%s' % ('127.0.0.1', port),
     'workers': number_of_workers(),
     'worker_class': 'sync',
     'threads': 1 

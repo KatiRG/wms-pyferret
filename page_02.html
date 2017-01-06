@@ -39,6 +39,10 @@
 	}
 	.ui-dialog { z-index: 1000 !important; }
 	.ui-dialog-title { font-size: 12px !important; }
+	#variable {
+                width: 300px;
+                margin-top: 50px;
+	}
     </style>
 </head>
 
@@ -60,6 +64,14 @@
    <div id='key2' class='key'><img /></div>
 </div>
 
+<fieldset id="variable">
+  <legend>Select a variable</legend>
+  <label>Temperature</label>
+  <input class="variableInput" type="radio" name="radio-1" checked value="temp">
+  <label>Salt</label>
+  <input class="variableInput" type="radio" name="radio-1" value="salt">
+</fieldset>
+
 <script type='text/javascript'>
 
 //===============================================
@@ -69,10 +81,12 @@ var map = [];
 var wmspyferret = [];
 var frontiers = [];
 
+var variableDisplayed = 'temp';
+
 //===============================================
 wmspyferret[1] = L.tileLayer.wms('http://localhost:8000', {
 	command: 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno',
-	variable: 'temp[k=@max]',
+	variable: variableDisplayed +'[k=@max]',
     	crs: crs,
 	format: 'image/png',
 	transparent: true,
@@ -95,8 +109,8 @@ map[1] = L.map('map1', {
 
 //===============================================
 wmspyferret[2] = L.tileLayer.wms('http://localhost:8000', {
-	command: 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_Seq1_RdPu',
-	variable: 'salt[k=@var]',
+	command: 'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno',
+	variable: variableDisplayed + '[k=@min]',
     	crs: crs,
 	format: 'image/png',
 	transparent: true,
@@ -156,7 +170,7 @@ $(".title").on('click', function() {
 	$('#commandLine').val($('#'+id).attr('title'));
 	$('#commandLine').attr('mapId', mapId);
 	$('#dialog').dialog({ title: 'Command of map #'+mapId, modal: false, width: 600, height: 100,
-			      position: {my: "left", at: "left+10", of: window} });
+			      position: {my: "left+30 top+30", at: "left", of: this} });
 });
 
 //===============================================
@@ -175,6 +189,28 @@ $('#commandLine').on('keypress', function(e) {
 							'&COMMAND=' + command +
 							'&VARIABLE=' + variable.replace('+','%2B'));
     }
+});
+
+//===============================================
+$('#variable').on('change', function() {
+	variableToDisplay = $('.variableInput:checked').val();
+
+	for (mapId = 1; mapId <= 2 ; mapId++) { 
+		command = wmspyferret[mapId].wmsParams.command;
+		variable = wmspyferret[mapId].wmsParams.variable.replace('%2B','+');
+		variable = variable.replace(variableDisplayed, variableToDisplay)
+		title = getTitle(command, variable);
+        	wmspyferret[mapId].setParams({ variable: variable.replace('+','%2B') });
+        	$('#title'+mapId).html(title);   
+        	$('#title'+mapId).attr('title', command + ' ' + variable);
+		$('#key'+mapId).children('img').attr('src', 'http://localhost:8000/?SERVICE=WMS&REQUEST=GetColorBar' +
+								'&COMMAND=' + command +
+								'&VARIABLE=' + variable.replace('+','%2B'));
+	}
+
+	variableDisplayed = variableToDisplay;
+	//console.log(variableDisplayed);
+
 });
 
 </script>
