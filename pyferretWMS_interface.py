@@ -52,11 +52,11 @@ def index_home():
 
 @app.route('/help')
 def index_help():
-    return render_template('help.html')    
+    return render_template('help.html')
 
 @app.route('/contributors')
 def index_about():
-    return render_template('about.html')    
+    return render_template('about.html')
 
 
 @app.route('/maps')
@@ -64,110 +64,77 @@ def index_maps():
 
     print("request.method in / !!!!!!!!!!!: ", request.method)
 
-    if request.method =='GET':
-        if not request.args: #initialize on start-up
-            session.clear()
-            session['cart'] = [] #to store ferret commands
-            nbMaps = 4   #len(cmdArray)
-            listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
-            print("Initialized session[cart]: ", session['cart'])
             
-          
+    nbMaps = 4   #len(cmdArray)
+    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2)) 
+    
     # session['cart'] = [{'variable': 'temp[k=@max]', 'dset': 'levitus_climatology', 'postvar': '', 'command': u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'}]
     session['cart'] = [1,2,3,4]
-    print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
+    
     print("listSynchroMapsToSet: ", listSynchroMapsToSet)
 
 
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
-@app.route('/maps', methods = ['POST', 'GET'])
-def map_formhandler():
+# @app.route('/maps', methods = ['POST', 'GET'])
+# def map_formhandler():
     
-    if request.method =='POST':
-        dset = str(request.form['DSET'])
-        variable = str(request.form['VARIABLE'])
-        command = request.form['COMMAND']
-        postvar = str(request.form['POSTVAR'])
-        # Add form input to session variable   
-        session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
+#     if request.method =='POST':
+#         dset = str(request.form['DSET'])
+#         variable = str(request.form['VARIABLE'])
+#         command = request.form['COMMAND']
+#         postvar = str(request.form['POSTVAR'])
+#         # Add form input to session variable   
+#         session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
 
-    nbMaps = len(session['cart'])    #len(cmdArray)
-    listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
+#     nbMaps = len(session['cart'])    #len(cmdArray)
+#     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
-    print("session[cart] in map_formhandler AFTER: ", session['cart'])
+#     print("session[cart] in map_formhandler AFTER: ", session['cart'])
 
-    return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
+#     return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
+@app.route('/timeseries')
+def timeseries():
+    if request.method =='GET':
+        if request.args.get('REQUEST') == 'getTimeseries':
+            print("REQUEST = ", request.args.get('REQUEST'))
+            # bokeh timeseries code
+            
+            # For x and y values in a dataframe:
+            # ----------------------------------
+            # dfer = pd.DataFrame()
+            # dfer['xval'] = x
+            # dfer['yval'] = df.ix[:, 1]
 
-@app.route('/maps/showmaps_resource', methods=['POST','GET'])
-def api_calcmaps():
+            # # Bokeh plot
+            # title='Average timeseries for ' + dset + ' (' + east + 'E-' + west + 'W, ' + south + 'S-' + north + 'N)'
+            # p = figure(title=title,
+            #             plot_width=700,plot_height=400)
+            # p.line(dfer['xval'], dfer['yval'])
 
-    # ImmutableMultiDict([('LAYERS', u''), ('STYLES', u''), ('WIDTH', u'256'), 
-    # ('SERVICE', u'WMS'), ('FORMAT', u'image/png'), ('REQUEST', u'GetMap'), 
-    # ('HEIGHT', u'256'), ('SRS', u'EPSG:4326'), ('VERSION', u'1.1.1'), 
-    # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
-    # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
-    
-    DSET = str(request.args.get('DSET'))
-    POSTVAR = str(request.args.get('POSTVAR'))
-    COMMAND = str(request.args.get('COMMAND'))
-    VARIABLE = str(request.args.get('VARIABLE'))
+            # # format axes
+            # if dateFlag==1:
+            #     p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
+            #         hours=["%d %B %Y"],
+            #         days=["%d %B %Y"],
+            #         months=["%d %B %Y"],
+            #         years=["%d %B %Y"],
+            #     ))
+            # p.xaxis.major_label_orientation = pi/4
+            # p.yaxis.axis_label = "avg " + variable
 
-    tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-    tmpname = os.path.basename(tmpname)    
+            # # create the HTML elements to pass to template
+            # figJS,figDiv = components(p,CDN)
 
-    # pyferret.run('go ' + envScript) # load the environment (dset to open + variables definition)
-    pyferret.run('use ' + DSET)
-   
-    pyferret.run('show data/all')
+            # return (render_template('timeseries.html',
+            #     y=dfer['yval'],
+            #     figJS=figJS,figDiv=figDiv,
+            #     tmpname=tmpname
+            #     ))
 
-    if request.args.get('REQUEST') == 'GetColorBar':
-
-                pyferret.run('set window/aspect=1/outline=0')
-                # pyferret.run('set window/aspect=.7')
-                pyferret.run('go margins 2 4 3 3')
-                pyferret.run(COMMAND + '/set_up ' + VARIABLE)
-                pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)+0`, 1, 1.25 ; ppl shade')                
-                pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')            
-
-                im = Image.open(tmpdir + '/key' + tmpname)
-                box = (0, 325, 400, 375)
-                area = im.crop(box)
-                area.save(tmpdir + '/' + tmpname, "PNG")
-
-    elif request.args.get('REQUEST') == 'GetMap':
-        
-        #Define pyferret variables for 'REQUEST' == 'GetMap'
-        BBOX = request.args.get('BBOX')
-        BBOX = BBOX.split(',')
-    
-        WIDTH = int(request.args.get('WIDTH'))
-        HEIGHT = int(request.args.get('HEIGHT'))
-
-        HLIM = '/hlim=' + str(BBOX[0]) + ':' + str(BBOX[2])
-        VLIM = '/vlim=' + str(BBOX[1]) + ':' + str(BBOX[3])
-
-        pyferret.run('set window/aspect=1/outline=5')
-        pyferret.run('go margins 0 0 0 0')
-
-        if POSTVAR:
-            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
-        else:
-            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
-        
-        #For saving to file
-        pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-
-    if os.path.isfile(tmpdir + '/' + tmpname):
-        ftmp = open(tmpdir + '/' + tmpname, 'rb')
-        img = ftmp.read()
-        ftmp.close()    
-        os.remove(tmpdir + '/' + tmpname)
-    
-    resp = Response(iter(img), status=200, mimetype='image/png')
-    return resp
-
+    # For now, until plot is calculated
+    return render_template('timeseries.html') 
 
     
 #==============================================================

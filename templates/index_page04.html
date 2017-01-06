@@ -173,7 +173,16 @@
 
 			//===============================================
 			//Define buttons and pass paramteters to route
+			$("#button_ts").click(function(){
+				console.log("bds in button: ", bds)				
+				window.open('/timeseries?&REQUEST=getTimeseries&BDS=' + bds, "_self");
+					return false;
+			});
 
+			// http://codepen.io/anon/pen/RWraBJ
+			$("#button_save").click(function(){				
+		        // $('#map{{loop.index}}').print();
+		    });
 		
 
 			//===============================================
