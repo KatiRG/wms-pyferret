@@ -45,6 +45,7 @@
 
 	  	<!-- Add map requested by user in form -->
 		{% for aDict in cmdArray -%}
+		
 			<div class='mapContainer'>
 				Map number: {{loop.index}} <br>
 				dataset: {{aDict.dset}}<br>
@@ -62,8 +63,7 @@
 				<div id="button{{loop.index}}_save" class='btn btn-default'>Save</div>
 				<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
 			</div>
-			
-			
+						
 		{% endfor -%}
 
   		
@@ -140,24 +140,12 @@
 				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
 				    firstCorner = controlsContainer.firstChild;
 
-				
-				// Add colourbar image URL to leaflet map div
-				// http://gis.stackexchange.com/questions/82950/add-simple-image-layers-to-mapbox-leaflet
-				// var imageUrl = 'http://www.lib.utexas.edu/maps/historical/newark_nj_1922.jpg',
-				// imageBounds = [[40.712216, -74.22655], [40.773941, -74.12544]];
-				var imageUrl = $(thisbar).find('img').attr('src'),    	
-				    imageBounds = [ [bds[0], bds[2]], [bds[0] + 1, bds[2] + 1] ];
-				L.imageOverlay(imageUrl, imageBounds).addTo(thismap);
-
-
 				// Turn colourbar display on and position it
 			  	jQuery(thisbar).attr("style", "display:block");
 			  	jQuery(thisbar).attr("style", "position:relative; top: 354px; left: 30px;");
 			  	
 			  	// Add to leaflet map container otherwise will not be included in img save
 			  	controlsContainer.insertBefore(zones.element, firstCorner); 
-
-		
 
 			};
 
@@ -193,9 +181,9 @@
 			{% endif %}	
 
 			//===============================================
+			//Define buttons and pass paramteters to route
 			{% for aDict in cmdArray -%}
-
-				//Define buttons and pass paramteters to route
+				
 				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
 					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds, "_self");
@@ -220,7 +208,6 @@
 			    });
 
 			{% endfor %}
-
 
 
 		</script>
