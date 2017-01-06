@@ -348,3 +348,7 @@ tmpdir = tempfile.mkdtemp()
 print('Temporary directory to remove: ', tmpdir)
 os.chdir(tmpdir)
 print("current wdir after cd: ", os.getcwd())
+
+Navigation Menu
+----------------
+http://pythonhow.com/flask-navigation-menu

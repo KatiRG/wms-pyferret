@@ -2,13 +2,16 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-    	<title>Ocean Stressors</title>		
+    	<title>stressors</title>		
 
     	<link rel= "stylesheet" type = "text/css"
 		    href = "{{ url_for('static', filename = 'style.css') }}">
 
 		<link rel= "stylesheet" type = "text/css"
 		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'bootstrap-theme.css') }}">    
 
     	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
 	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
@@ -24,19 +27,30 @@
 	</head>
 
 	<body>
-   	<div class="container-fluid">
-   		{% extends "layout.html" %}
-		{% block content %}
-	    	<h2>Multiple stressors of ocean ecosystems</h2>
-	    	Add text
-	    {% endblock %}
+   	
+	    <header>
+	    	<div class="container">
+	    		
+	    		<h1 class="logo">Ocean Stressors</h1>
+	    		
+	        	<nav>
+		          	<ul class="menu">
+		            	<li><a href="{{ url_for('index_home') }}">Home</a></li>
+		            	<li><a href="{{ url_for('index_maps') }}">Explore/Get Data</a></li>
+		            	<li><a href="{{ url_for('index_help') }}">Help</a></li>
+		            	<li><a href="{{ url_for('index_about') }}">Contributors</a></li>	
+		          	</ul>
+	        	</nav>
+	      	
+	      	</div>
+	  	</header>
 
-	 
-	
+      	<div class="container">
+      		{% block content %}
+      		{% endblock %}
+    	</div>
 
-  		
-		
 
-  	</div> <!-- ./container --> 
+  	
   </body>
 </html>
