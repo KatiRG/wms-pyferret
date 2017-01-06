@@ -148,7 +148,7 @@
 
 			//===============================================
 			//Get leaflet map bounds (default view upon page load):
-			{% if cmdArray %}
+			function getBds() {
 				var bds=[]
 				bds = [
 					map[1].getBounds().getEast(),
@@ -156,7 +156,6 @@
 				    map[1].getBounds().getNorth(),
 				    map[1].getBounds().getSouth()
 				];
-				console.log("default bds: ", bds);
 
 				//bounds after zoom
 				map[1].on('moveend', function() {
@@ -169,11 +168,14 @@
 				    console.log("bds on zoom: ", bds);
 
 				});
-			{% endif %}	
+
+				return bds;
+			}
 
 			//===============================================
 			//Define buttons and pass paramteters to route
 			$("#button_ts").click(function(){
+				bds = getBds();
 				console.log("bds in button: ", bds)				
 				window.open('/timeseries?&REQUEST=getTimeseries&BDS=' + bds, "_self");
 					return false;

@@ -99,6 +99,7 @@ def timeseries():
     if request.method =='GET':
         if request.args.get('REQUEST') == 'getTimeseries':
             print("REQUEST = ", request.args.get('REQUEST'))
+            bds = request.args.get('BDS')
             # bokeh timeseries code
             
             # For x and y values in a dataframe:
@@ -134,7 +135,7 @@ def timeseries():
             #     ))
 
     # For now, until plot is calculated
-    return render_template('timeseries.html') 
+    return render_template('timeseries.html', bds=bds) 
 
     
 #==============================================================
