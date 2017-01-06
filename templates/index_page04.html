@@ -203,6 +203,37 @@
 			}
 
 			//===============================================
+			// Click title to open command line popup
+			$(".title").on('click', function() {
+				id = $(this).attr('id');
+				mapId = id.replace('title','');
+				$('#commandLine').val($('#'+id).attr('title'));
+				$('#commandLine').attr('mapId', mapId);
+				$('#dialog').dialog({ title: 'Command of map #'+mapId, modal: false, width: 600, height: 100,
+						      position: {my: "left+30 top+30", at: "left", of: this} });
+			});
+
+			//===============================================
+			// Send new command after pressing enter on command line
+			$('#commandLine').on('keypress', function(e) {
+			    if(e.which === 13) {
+			        commandLine = $(this).val().split(' ');
+			        command = commandLine[0];
+			        commandLine.shift();
+			        variable = commandLine.join(' ');       
+				mapId = $(this).attr('mapId');
+			        wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
+				title = getTitle(command, variable);
+			        $('#title'+mapId).html(title);   
+			        $('#title'+mapId).attr('title', command + ' ' + variable);
+				$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
+										'&COMMAND=' + command +
+										'&VARIABLE=' + variable.replace('+','%2B'));
+			    }
+			});
+
+
+			//===============================================
 			$('#dimension').on('change', function() {
 				console.log("dimension on change!!")
 				dimensionToDisplay = $('.dimensionInput:checked').val();
