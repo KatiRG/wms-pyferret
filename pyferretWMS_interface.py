@@ -101,7 +101,7 @@ def index_maps():
     nbMaps = len(session['cart'])
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
-    return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
+    return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 @app.route('/maps', methods = ['POST', 'GET'])
 def map_formhandler():
@@ -119,7 +119,7 @@ def map_formhandler():
 
     print("session[cart] in map_formhandler AFTER: ", session['cart'])
 
-    return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
+    return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 
 @app.route('/maps/showmaps_resource', methods=['POST','GET'])
@@ -271,8 +271,8 @@ parser.add_option("--height", type="int", dest="height", default=400,
 		help="200 < map height <= 600")
 parser.add_option("--size", type="int", dest="size",
 		help="200 < map height and width <= 600")
-parser.add_option("--env", dest="envScript", default="pyferretWMS.jnl",
-		help="ferret script to set the environment (default=pyferretWMS.jnl). It contains datasets to open, variables definition.")
+parser.add_option("--env", dest="envScript", default="pyferretWMS1.jnl",
+		help="ferret script to set the environment (default=pyferretWMS1.jnl). It contains datasets to open, variables definition.")
 parser.add_option("--center", type="string", dest="center", default='[0,-40]',
 		help="Initial center of maps as [lat, lon] (default=[0,-40])")
 parser.add_option("--zoom", type="int", dest="zoom", default=1,
@@ -281,6 +281,7 @@ parser.add_option("--server", dest="serverOnly", action="store_true", default=Fa
 		help="Server only (default=False)")
 
 (options, args) = parser.parse_args()
+print("options, args: ", parser.parse_args() )
 
 if options.size:
 	mapHeight = options.size

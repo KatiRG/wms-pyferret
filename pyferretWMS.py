@@ -377,6 +377,8 @@ parser.add_option("--server", dest="serverOnly", action="store_true", default=Fa
 
 (options, args) = parser.parse_args()
 
+print("options, args: ", parser.parse_args() )
+
 if options.size:
 	mapHeight = options.size
 	mapWidth = options.size

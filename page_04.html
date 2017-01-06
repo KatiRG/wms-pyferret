@@ -285,8 +285,12 @@ map[4].sync(map[3]);
 
 //===============================================
 function getTitle(aCommand, aVariable) {
+	console.log("getTitle aCommand: ", aCommand)
+	console.log("getTitle aVariable: ", aVariable)
+
 	// Inspect command to get /title qualifier if present
 	m = aCommand.match(/title=([\w&]+)/);		// equivalent to search in python
+	console.log("m: ", m)
 	if (m != null)
 		title = m[1]
 	else 
@@ -297,6 +301,10 @@ function getTitle(aCommand, aVariable) {
 //===============================================
 for (mapId = 1; mapId <= 4 ; mapId++) { 
 	title = getTitle(wmspyferret_var[mapId].wmsParams.command, wmspyferret_var[mapId].wmsParams.variable.replace('%2B','+'));
+
+	console.log("mapId: ", mapId)
+	console.log("title: ", title)
+
 	$('#title'+mapId).html(title);
 	$('#title'+mapId).attr('title', wmspyferret_var[mapId].wmsParams.command + ' ' + wmspyferret_var[mapId].wmsParams.variable.replace('%2B','+'));   
 	$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
@@ -334,6 +342,7 @@ $('#commandLine').on('keypress', function(e) {
 
 //===============================================
 $('#dimension').on('change', function() {
+	console.log("dimension on change!!")
 	dimensionToDisplay = $('.dimensionInput:checked').val();
 	variableToDisplay = $('.variableInput:checked').val();
 	scenarioToDisplay = $('.scenarioInput:checked').val();
@@ -361,10 +370,11 @@ $('#dimension').on('change', function() {
 			mask = mask.replace('SSSSS', scenarioToDisplay);
 		}
 		title = getTitle(command, variable);
-        	wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
-        	wmspyferret_mask[mapId].setParams({ variable: mask.replace('+','%2B') });
-        	$('#title'+mapId).html(title);   
-        	$('#title'+mapId).attr('title', command + ' ' + variable);
+		console.log("title in dimension on change: ", title)
+    	wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
+    	wmspyferret_mask[mapId].setParams({ variable: mask.replace('+','%2B') });
+    	$('#title'+mapId).html(title);
+    	$('#title'+mapId).attr('title', command + ' ' + variable);
 		$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
 								'&COMMAND=' + command +
 								'&VARIABLE=' + variable.replace('+','%2B'));

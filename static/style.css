@@ -172,3 +172,15 @@ body {
 .ui-dialog-title {
     font-size: 12px !important;
 }
+#dimension{
+  display: block;
+}
+.userChoices {
+  display: inline-block;
+  width: 350px;
+}
+fieldset {
+  -moz-border-radius: 8px;
+  border-radius: 8px;
+  -webkit-border-radius: 8px;
+}
