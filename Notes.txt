@@ -352,6 +352,12 @@ print("current wdir after cd: ", os.getcwd())
 Navigation Menu
 ----------------
 http://pythonhow.com/flask-navigation-menu
+--> tu pourras suivre la réponse de
+http://stackoverflow.com/questions/18600031/changing-the-active-class-of-a-link-with-the-twitter-bootstrap-css-in-python-fla
+At the bottom of your base/layout template just add this
+<script>$(document).ready(function(){
+$("#{{request.endpoint}}").addClass("active");})
+</script>
 
 Style
 -----
