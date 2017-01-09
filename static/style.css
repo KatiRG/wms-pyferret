@@ -21,6 +21,9 @@ p.caption {
     color: #555;
 }
 
+.info {
+  margin-left: -14px;
+}
 /* Formatting the header area */
 /* http://pythonhow.com/add-css-to-flask-website */
 
