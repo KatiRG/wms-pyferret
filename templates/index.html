@@ -1,41 +1,26 @@
 <!doctype html>
 <html>
 	<head>
-		<meta charset="utf-8">
+
     	<title>Ocean Stressors</title>		
 
-    	<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'style.css') }}">
-
-		<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">
-
-    	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
-	    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
-
-	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
-	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
-	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
-
-	    <script type = "text/javascript"
-		    src = "{{ url_for('static', filename = 'printing/jQuery.print.js') }}"></script>
 
 	</head>
 
 	<body>
-   	<div class="container-fluid">
+   	
    		{% extends "layout.html" %}
 		{% block content %}
-	    	<h2>Multiple stressors of ocean ecosystems</h2>
+	
+	    	<div class="row">
+	    		<h2>Multiple stressors of ocean ecosystems</h2>
+	    	</div>	
 	    	
 	    	 <div class="row">
 	    	 	<div class="col-lg-8">
 	    			<p>Here, we present an interactive interface to explore simulations published in <a href='http://www.biogeosciences.net/10/6225/2013/' target='_blank'>Bopp et al. (2013)</a> to assess how four major stressors of open ocean ecosystems could evolve over the course of the 21st century: sea surface warming, surface pH, subsurface dissolved O<sub>2</sub> concentration, and primary productivity by marine phytoplankton (NPP). </p>
 	    		</div>
 	    	</div>
-
-	    	<!--The 10 Earth system models used here project similar trends in ocean warming, acidification, deoxygenation and reduced primary productivity for each of the IPCC’s representative concentration pathways (RCPs) over the 21st century.-->
 
 	    	<div class="row">
 	    	 	<div class="col-lg-6">
@@ -64,7 +49,7 @@
 
 	    	<div class="row">
 	    	 	<div class="col-lg-8">
-	    			<p>All models project consistent warming, acidification, deoxygenation and lowering
+	    			<br><p>All models project consistent warming, acidification, deoxygenation and lowering
 					of primary productivity, whose intensities strongly depend on the scenario. </p>
 	    		</div>
 	    	</div>
@@ -74,18 +59,16 @@
 	    			<br><p>Navigate to "Explore/Get Data" to view simulated changes in stressor intensities under each RCP scenario plotted on synchronized, zoomable maps or as a timeseries. </p>
 	    		</div>
 	    	</div>
+	    </body>	
 
-
-	    	
-
+	 
 	    {% endblock %}
 
 	 
 	
 
-  		
+</html>
 		
 
-  	</div> <!-- ./container --> 
-  </body>
-</html>
+  
+  
