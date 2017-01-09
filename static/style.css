@@ -2,7 +2,7 @@ body {
     /*font-family: Arial;*/
     
     color: #555;
-    padding-top: 40px; /* positions container after navbar */
+    /* padding-top: 0px; positions container after navbar--not needed after wrap div added */
     padding-left: 30px; /* aligns container with navbar text */
 }
 /** {
