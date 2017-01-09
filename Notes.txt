@@ -352,3 +352,8 @@ print("current wdir after cd: ", os.getcwd())
 Navigation Menu
 ----------------
 http://pythonhow.com/flask-navigation-menu
+
+Style
+-----
+- http://kadavy.net/allthefontsyoulleverneed-kadavy.pdf
+- http://www.slideshare.net/kadavy/choosing-typefaces-all-the-fonts-youll-ever-need-sxsw-2011-design-for-hackers

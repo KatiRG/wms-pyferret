@@ -3,6 +3,7 @@ body {
     
     color: #555;
     padding: 0px 100px;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
 * {
     font-size: 15px;
@@ -10,12 +11,14 @@ body {
 }
 
 p {
-  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  /*font-family: Georgia;*/
+  color: #555;
 }
 p.caption {
     line-height: 96%;
     font-family: "Trebuchet MS", Helvetica, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
+    color: #555;
 }
 
 /* Formatting the header area */
@@ -142,8 +145,10 @@ body {
     width: 200px;
 }
 .map {
-    width: 400px;
-    height: 400px;
+    /*width: 400px;
+    height: 400px;*/
+    width: 520px; 
+    height: 260px;
 }
 .key {
     text-align: left;
