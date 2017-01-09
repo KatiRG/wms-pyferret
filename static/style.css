@@ -9,6 +9,15 @@ body {
     line-height: 2;
 }
 
+p {
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+}
+p.caption {
+    line-height: 96%;
+    font-family: "Trebuchet MS", Helvetica, sans-serif;
+    font-size: 12px;
+}
+
 /* Formatting the header area */
 /* http://pythonhow.com/add-css-to-flask-website */
 header {
