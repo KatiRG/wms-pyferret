@@ -47,10 +47,25 @@
 		          </div>
 		          <div class="collapse navbar-collapse">
 		            <ul class="nav navbar-nav">
-		              <li><a href="{{ url_for('index_home') }}">Home</a></li>
-		            	<li><a href="{{ url_for('index_maps') }}">Explore/Get Data</a></li>
-		            	<li><a href="{{ url_for('index_help') }}">Help</a></li>
-		            	<li><a href="{{ url_for('index_about') }}">Contributors</a></li>
+
+		            	<!-- http://stackoverflow.com/questions/22173041/styling-active-element-menu-in-flask -->
+		            	<li {% if request.path == '/' %}class="active"{% endif %}>
+						     <a href="{{ url_for('index_home') }}">Home</a>
+						</li>
+
+		            	<li {% if request.path == '/maps' %}class="active"{% endif %}>
+						     <a href="{{ url_for('index_maps') }}">Explore/Get Data</a>
+						</li>
+
+		            	
+		            	<li {% if request.path == '/help' %}class="active"{% endif %}>
+						     <a href="{{ url_for('index_help') }}">Help</a>
+						</li>
+
+						<li {% if request.path == '/contributors' %}class="active"{% endif %}>
+						     <a href="{{ url_for('index_about') }}">Contributors</a>
+						</li>
+
 		            </ul>
 		          </div><!--/.nav-collapse -->
 		        </div>

@@ -71,28 +71,7 @@ def index_maps():
     # session['cart'] = [{'variable': 'temp[k=@max]', 'dset': 'levitus_climatology', 'postvar': '', 'command': u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'}]
     session['cart'] = [1,2,3,4]
     
-    print("listSynchroMapsToSet: ", listSynchroMapsToSet)
-
-
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
-
-# @app.route('/maps', methods = ['POST', 'GET'])
-# def map_formhandler():
-    
-#     if request.method =='POST':
-#         dset = str(request.form['DSET'])
-#         variable = str(request.form['VARIABLE'])
-#         command = request.form['COMMAND']
-#         postvar = str(request.form['POSTVAR'])
-#         # Add form input to session variable   
-#         session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
-
-#     nbMaps = len(session['cart'])    #len(cmdArray)
-#     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
-
-#     print("session[cart] in map_formhandler AFTER: ", session['cart'])
-
-#     return render_template('index_page04.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 @app.route('/timeseries')
 def timeseries():
