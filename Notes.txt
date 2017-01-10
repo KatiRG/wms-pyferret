@@ -360,3 +360,10 @@ Style
 -----
 - http://kadavy.net/allthefontsyoulleverneed-kadavy.pdf
 - http://www.slideshare.net/kadavy/choosing-typefaces-all-the-fonts-youll-ever-need-sxsw-2011-design-for-hackers
+
+Palettes
+--------
+pal=blue_orange.spk
+pal=brown_green.spk
+pal=darkorange_blue.spk
+pal=magenta_green.spk
