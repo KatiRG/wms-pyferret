@@ -30,16 +30,40 @@
 
 		<div class="row">
 	    	<h2>Changes in stressor intensity in 2090&ndash;2099 relative to 1990&ndash;1999</h2>
+	    	Select a stressor to view its intensity change under all RCP scenarios or select a scenario to view intensity changes of all four stressors.
 	    </div>
+		   
 
-	
-	    <div class="row">
-	    	<div class="col-lg-8">
-	    		<p class="info">
-	    			View intensity changes of four different stressors under a selected RCP scenario or view intensity changes of a selected stressor under four RCP scenarios.
-	    		</p>
-    		</div>
-    	</div>
+    		<fieldset id="dimension" class="userChoices">
+		  <!-- <legend>Select</legend> -->
+
+		  <input class="dimensionInput" type="radio" name="radio-0" value="variable" checked>
+		  <label>stressor:</label>
+		  <fieldset id="variable" class="userChoices">
+		    <input class="variableInput" type="radio" name="radio-1" value="D_SST" checked>
+		    <label>&delta; SST</label>
+		    <input class="variableInput" type="radio" name="radio-1" value="D_PH">
+		    <label>&delta; pH</label>
+		    <input class="variableInput" type="radio" name="radio-1" value="D_O2">
+		    <label>&delta; O2</label>
+		    <input class="variableInput" type="radio" name="radio-1" value="D_INTPP">
+		    <label>&delta; intPP</label>
+		  </fieldset>
+
+		  <input class="dimensionInput" type="radio" name="radio-0" value="scenario">
+		  <label>scenario:</label>
+		  <fieldset id="scenario" class="userChoices">
+		    <input class="scenarioInput" type="radio" name="radio-2" value="RCP85" checked>
+		    <label>RCP 8.5</label>
+		    <input class="scenarioInput" type="radio" name="radio-2" value="RCP60">
+		    <label>RCP 6.0</label>
+		    <input class="scenarioInput" type="radio" name="radio-2" value="RCP45">
+		    <label>RCP 4.5</label>
+		    <input class="scenarioInput" type="radio" name="radio-2" value="RCP26">
+		    <label>RCP 2.6</label>
+		  </fieldset>
+
+		</fieldset>
 
 	    <div id="dialog">
 			<input id="commandLine" type="text" placeholder="New command">
@@ -57,41 +81,11 @@
 
 		<p></p>
 		<div id="timeSeries" class='btn btn-default'>Timeseries</div>		
-		<div id="button_save" class='btn btn-default' disabled>Save Maps</div>
+		<div id="button_save" class='btn btn-default'>Save Maps</div>
 
+		<br><br>
 
-		<fieldset id="dimension" class="userChoices">
-		  	<legend>Select</legend>
-
-			  <input class="dimensionInput" type="radio" name="radio-0" value="variable" checked>
-			  <label>a variable</label>
-			  <fieldset id="variable" class="userChoices">
-			    <input class="variableInput" type="radio" name="radio-1" value="D_SST" checked>
-			    <label>&delta; SST</label>
-			    <input class="variableInput" type="radio" name="radio-1" value="D_PH">
-			    <label>&delta; pH</label>
-			    <input class="variableInput" type="radio" name="radio-1" value="D_O2">
-			    <label>&delta; O2</label>
-			    <input class="variableInput" type="radio" name="radio-1" value="D_INTPP">
-			    <label>&delta; intPP</label>
-			  </fieldset>
-
-			  <input class="dimensionInput" type="radio" name="radio-0" value="scenario">
-			  <label>or a scenario</label>
-			  <fieldset id="scenario" class="userChoices">
-			    <input class="scenarioInput" type="radio" name="radio-2" value="RCP85" checked>
-			    <label>RCP 8.5</label>
-			    <input class="scenarioInput" type="radio" name="radio-2" value="RCP60">
-			    <label>RCP 6.0</label>
-			    <input class="scenarioInput" type="radio" name="radio-2" value="RCP45">
-			    <label>RCP 4.5</label>
-			    <input class="scenarioInput" type="radio" name="radio-2" value="RCP26">
-			    <label>RCP 2.6</label>
-			  </fieldset>
-
-		</fieldset>
-
-  		
+	
 		<script type='text/javascript'>
 
 			//===============================================
