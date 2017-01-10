@@ -87,6 +87,10 @@ body {
     text-align: center;
     margin: auto;
     /*margin-left: -30px;*/
+    display: inline-block;
+}
+.edit .btn-xs {
+  float: left;
 }
 .key img {
     width: 400px;

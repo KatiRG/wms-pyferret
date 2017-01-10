@@ -53,10 +53,11 @@
 	  	<!-- Containers for pre-defined maps -->
 	  	{% for aDict in cmdArray -%}
 	  		<div class='mapContainer'>
-	  			<button id='edit{{ loop.index }}' type="button" class="edit btn btn-default btn-xs">Edit</button>	 
+	  			 
 				<div id='title{{ loop.index }}' class='title'></div>
 			    <div id='map{{ loop.index }}' class='map'></div>
 			    <div id='key{{ loop.index }}' class='key'><img /></div>
+			    <button id='edit{{ loop.index }}' type="button" class="edit btn btn-default btn-xs">Edit palette</button>	
 			</div>
 	  	{% endfor %}
 
@@ -216,9 +217,12 @@
 				id = 'title' + mapId;
 
 				$('#commandLine').val($('#'+id).attr('title'));
+				console.log("edit commandLine: ", $('#commandLine').val($('#'+id).attr('title')) )
 				$('#commandLine').attr('mapId', mapId);
 				$('#dialog').dialog({ title: 'Command line for map #'+mapId, modal: false, width: 600, height: 100,
 					position: {my: "left+30 top+30", at: "left", of: this} });
+
+				// $('#title'+mapId).attr('title', command.split('(INF)/')[1]);
 				
 			});
 
@@ -227,15 +231,31 @@
 			// Send new command after pressing enter on command line
 			$('#commandLine').on('keypress', function(e) {
 			    if(e.which === 13) {
-			    	
-			        commandLine = $(this).val().split(' ');			        
+			
+			        commandLine = $(this).val().split(' ');
+			        console.log("keypress commandLine: ", commandLine)
 			        command = commandLine[0];
 			        commandLine.shift();
 			        variable = commandLine.join(' ');
 			        
-					mapId = $(this).attr('mapId');
+			        
+			        
+					// mapId = $(this).attr('mapId');
+					// console.log("keypress title: ", $('#title' + mapId).attr('title'))
+					// command_full = $('#title' + mapId).attr('title');
+					// console.log("command_full: ", command_full)
+					// command = command_full.split(' ')[0];
+					// variable = command_full.split(' ')[1];
+					// console.log("command: ", command)
+			  //       console.log("variable: ", variable)
+
+					
 			        wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
+
+			     
+		
 					title = getTitle(command, variable);
+					
 					
 			        $('#title'+mapId).html(title);
 			        $('#title'+mapId).attr('title', command + ' ' + variable);
@@ -247,6 +267,7 @@
 
 
 			//===============================================
+			//Radio buttons
 			$('#dimension').on('change', function() {				
 				dimensionToDisplay = $('.dimensionInput:checked').val();
 				variableToDisplay = $('.variableInput:checked').val();
@@ -274,12 +295,13 @@
 						mask = mask.replace('VVVVV', variableList[mapId-1]);
 						mask = mask.replace('SSSSS', scenarioToDisplay);
 					}
-					title = getTitle(command, variable);
-					console.log("title in dimension on change: ", title)
+					title = getTitle(command, variable);					
 			    	wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
 			    	wmspyferret_mask[mapId].setParams({ variable: mask.replace('+','%2B') });
 			    	$('#title'+mapId).html(title);
-			    	$('#title'+mapId).attr('title', command + ' ' + variable);
+			    	
+			    	$('#title'+mapId).attr('title', command + ' ' + variable);			    	
+					
 					$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
 											'&COMMAND=' + command +
 											'&VARIABLE=' + variable.replace('+','%2B'));
