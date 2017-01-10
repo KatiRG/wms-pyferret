@@ -53,15 +53,16 @@
 	  	<!-- Containers for pre-defined maps -->
 	  	{% for aDict in cmdArray -%}
 	  		<div class='mapContainer'>
+	  			<button id='edit{{ loop.index }}' type="button" class="edit btn btn-default btn-xs">Edit</button>	 
 				<div id='title{{ loop.index }}' class='title'></div>
 			    <div id='map{{ loop.index }}' class='map'></div>
-			    <div id='key{{ loop.index }}' class='key'><img /></div>			    
+			    <div id='key{{ loop.index }}' class='key'><img /></div>
 			</div>
 	  	{% endfor %}
 
 
 		<p></p>
-		<div id="timeSeries" class='btn btn-default'>Timeseries</div>		
+		<div id="timeSeries" class='btn btn-default'>Timeseries</div>
 		<div id="button_save" class='btn btn-default'>Save Maps</div>
 
 		<br><br>
@@ -72,7 +73,7 @@
 			//===============================================
 			var crs = L.CRS.EPSG4326;
 
-			var map = [];			
+			var map = [];
 			var wmspyferret_var = [];
 			var wmspyferret_mask = [];
 			var frontiers= [];
@@ -201,43 +202,41 @@
 					title = m[1];
 				else 
 					title = aVariable;
-					console.log("title1 in getTitle: ", title)
 					title = title.split('[')[0];
-					console.log("title2 in getTitle: ", title)
 					title = titleDict[title];
-				console.log("title in getTitle: ", title)
+				
 				return title
 			}
 
 			//===============================================
-			// Click title to open command line popup
-			$(".title").on('click', function() {
-				id = $(this).attr('id');
-				mapId = id.replace('title','');
-				console.log("#commandLine: ", $('#commandLine'))
-				console.log("$('#commandLine').val($('#'+id): ", $('#commandLine').val($('#'+id)))
-				console.log("$('#commandLine').val($('#'+id): ", $('#commandLine').val($('#'+id).attr('title')) )
+			// Click edit button to open command line popup
+			$('.edit').on('click', function() {
+			    
+				mapId = $(this).attr('id').replace('edit','');
+				id = 'title' + mapId;
+
 				$('#commandLine').val($('#'+id).attr('title'));
 				$('#commandLine').attr('mapId', mapId);
 				$('#dialog').dialog({ title: 'Command line for map #'+mapId, modal: false, width: 600, height: 100,
-						      position: {my: "left+30 top+30", at: "left", of: this} });
+					position: {my: "left+30 top+30", at: "left", of: this} });
+				
 			});
+
 
 			//===============================================
 			// Send new command after pressing enter on command line
 			$('#commandLine').on('keypress', function(e) {
 			    if(e.which === 13) {
-			    	console.log("this: ", $(this))
-			        commandLine = $(this).val().split(' ');
-			        console.log("commandLine: ", commandLine)
+			    	
+			        commandLine = $(this).val().split(' ');			        
 			        command = commandLine[0];
 			        commandLine.shift();
 			        variable = commandLine.join(' ');
-			        console.log("commandLine: ", commandLine)
+			        
 					mapId = $(this).attr('mapId');
 			        wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
 					title = getTitle(command, variable);
-					console.log("title: ", title)
+					
 			        $('#title'+mapId).html(title);
 			        $('#title'+mapId).attr('title', command + ' ' + variable);
 					$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
