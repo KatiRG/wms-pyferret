@@ -56,8 +56,8 @@
 
 
 		<p></p>
-		<div id="button_ts" class='btn btn-default'>Timeseries</div>
-		<div id="button_save" class='btn btn-default'>Save Maps</div>
+		<div id="timeSeries" class='btn btn-default'>Timeseries</div>		
+		<div id="button_save" class='btn btn-default' disabled>Save Maps</div>
 
 
 		<fieldset id="dimension" class="userChoices">
@@ -284,6 +284,21 @@
 			});
 
 			$('#dimension').change();
+
+			//===============================================
+			n=1;
+			$('#timeSeries').on('click', function() {
+			    console.log("here");
+
+				$('body').append("<div id='ts"+n+"'></div>") 
+
+			                   $('#ts'+n).dialog({
+				title: "Time Series #"+n,
+			                        width: 830,
+			                        height: 660,
+			                   });
+			                n++;
+			});
 
 
 		</script>

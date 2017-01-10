@@ -73,49 +73,6 @@ def index_maps():
     
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
-@app.route('/timeseries')
-def timeseries():
-    if request.method =='GET':
-        if request.args.get('REQUEST') == 'getTimeseries':
-            print("REQUEST = ", request.args.get('REQUEST'))
-            bds = request.args.get('BDS')
-            # bokeh timeseries code
-            
-            # For x and y values in a dataframe:
-            # ----------------------------------
-            # dfer = pd.DataFrame()
-            # dfer['xval'] = x
-            # dfer['yval'] = df.ix[:, 1]
-
-            # # Bokeh plot
-            # title='Average timeseries for ' + dset + ' (' + east + 'E-' + west + 'W, ' + south + 'S-' + north + 'N)'
-            # p = figure(title=title,
-            #             plot_width=700,plot_height=400)
-            # p.line(dfer['xval'], dfer['yval'])
-
-            # # format axes
-            # if dateFlag==1:
-            #     p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
-            #         hours=["%d %B %Y"],
-            #         days=["%d %B %Y"],
-            #         months=["%d %B %Y"],
-            #         years=["%d %B %Y"],
-            #     ))
-            # p.xaxis.major_label_orientation = pi/4
-            # p.yaxis.axis_label = "avg " + variable
-
-            # # create the HTML elements to pass to template
-            # figJS,figDiv = components(p,CDN)
-
-            # return (render_template('timeseries.html',
-            #     y=dfer['yval'],
-            #     figJS=figJS,figDiv=figDiv,
-            #     tmpname=tmpname
-            #     ))
-
-    # For now, until plot is calculated
-    return render_template('timeseries.html', bds=bds) 
-
     
 #==============================================================
 def number_of_workers():
