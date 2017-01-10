@@ -1,26 +1,7 @@
 <!doctype html>
 <html>
 	<head>
-		<meta charset="utf-8">
 		<title>Get/Explore Data</title>
-
-    	<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'style.css') }}">
-
-		<link rel= "stylesheet" type = "text/css"
-		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">
-
-    	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
-	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
-	    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
-
-	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
-	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
-	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
-
-	    <script type = "text/javascript"
-		    src = "{{ url_for('static', filename = 'printing/jQuery.print.js') }}"></script>
-
 	</head>
 
 	<body>
@@ -102,9 +83,31 @@
 			var qualifiersList = { 'D_SST': '/lev=(-INF)(-4,4,0.5)(INF)/pal=blue_orange.spk',
                        'D_PH':  '/lev=(-INF)(-0.5,0.5,0.05)(INF)/pal=brown_green.spk',
                        'D_O2':  '/lev=(-INF)(-50,50,5)(INF)/pal=darkorange_blue.spk',
-                       'D_INTPP':  '/lev=(-INF)(-200,200,10)(INF)/pal=magenta_green.spk' };         
-       
+                       'D_INTPP':  '/lev=(-INF)(-200,200,10)(INF)/pal=magenta_green.spk' };
 
+            var titleDict = {
+            	'D_SST_RCP85': 'Sea surface temperature change (RCP 8.5)',
+            	'D_SST_RCP60': 'Sea surface temperature change (RCP 6.0)',
+            	'D_SST_RCP45': 'Sea surface temperature change (RCP 4.5)',
+            	'D_SST_RCP26': 'Sea surface temperature change (RCP 2.6)',
+
+            	'D_PH_RCP85': 'Sea surface pH change (RCP 8.5)',
+            	'D_PH_RCP60': 'Sea surface pH change (RCP 6.0)',
+            	'D_PH_RCP45': 'Sea surface pH change (RCP 4.5)',
+            	'D_PH_RCP26': 'Sea surface pH change (RCP 2.6)',
+
+            	'D_O2_RCP85': 'Oxygen concentration change at 200-600m (RCP 8.5)',
+            	'D_O2_RCP60': 'Oxygen concentration change at 200-600m (RCP 6.0)',
+            	'D_O2_RCP45': 'Oxygen concentration change at 200-600m (RCP 4.5)',
+            	'D_O2_RCP26': 'Oxygen concentration change at 200-600m (RCP 2.6)',
+
+            	'D_INTPP_RCP85': 'Integrated net primary productivity change (RCP 8.5)',
+            	'D_INTPP_RCP60': 'Integrated net primary productivity change (RCP 6.0)',
+            	'D_INTPP_RCP45': 'Integrated net primary productivity change (RCP 4.5)',
+            	'D_INTPP_RCP26': 'Integrated net primary productivity change (RCP 2.6)'
+            };
+       
+             
 			//===============================================			
 			{% for aDict in cmdArray -%}
 				wmspyferret_var[{{ loop.index }}] = L.tileLayer.wms('http://webportals.ipsl.jussieu.fr/gunicorn1', {
@@ -191,16 +194,18 @@
 
 			//===============================================
 			function getTitle(aCommand, aVariable) {
-				console.log("getTitle aCommand: ", aCommand)
-				console.log("getTitle aVariable: ", aVariable)
 
 				// Inspect command to get /title qualifier if present
-				m = aCommand.match(/title=([\w&]+)/);		// equivalent to search in python
-				console.log("m: ", m)
+				m = aCommand.match(/title=([\w&]+)/); // equivalent to search in python
 				if (m != null)
-					title = m[1]
+					title = m[1];
 				else 
-					title = aVariable 
+					title = aVariable;
+					console.log("title1 in getTitle: ", title)
+					title = title.split('[')[0];
+					console.log("title2 in getTitle: ", title)
+					title = titleDict[title];
+				console.log("title in getTitle: ", title)
 				return title
 			}
 
@@ -209,9 +214,12 @@
 			$(".title").on('click', function() {
 				id = $(this).attr('id');
 				mapId = id.replace('title','');
+				console.log("#commandLine: ", $('#commandLine'))
+				console.log("$('#commandLine').val($('#'+id): ", $('#commandLine').val($('#'+id)))
+				console.log("$('#commandLine').val($('#'+id): ", $('#commandLine').val($('#'+id).attr('title')) )
 				$('#commandLine').val($('#'+id).attr('title'));
 				$('#commandLine').attr('mapId', mapId);
-				$('#dialog').dialog({ title: 'Command of map #'+mapId, modal: false, width: 600, height: 100,
+				$('#dialog').dialog({ title: 'Command line for map #'+mapId, modal: false, width: 600, height: 100,
 						      position: {my: "left+30 top+30", at: "left", of: this} });
 			});
 
@@ -219,16 +227,20 @@
 			// Send new command after pressing enter on command line
 			$('#commandLine').on('keypress', function(e) {
 			    if(e.which === 13) {
+			    	console.log("this: ", $(this))
 			        commandLine = $(this).val().split(' ');
+			        console.log("commandLine: ", commandLine)
 			        command = commandLine[0];
 			        commandLine.shift();
-			        variable = commandLine.join(' ');       
-				mapId = $(this).attr('mapId');
+			        variable = commandLine.join(' ');
+			        console.log("commandLine: ", commandLine)
+					mapId = $(this).attr('mapId');
 			        wmspyferret_var[mapId].setParams({ command: command, variable: variable.replace('+','%2B') });
-				title = getTitle(command, variable);
-			        $('#title'+mapId).html(title);   
+					title = getTitle(command, variable);
+					console.log("title: ", title)
+			        $('#title'+mapId).html(title);
 			        $('#title'+mapId).attr('title', command + ' ' + variable);
-				$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
+					$('#key'+mapId).children('img').attr('src', 'http://webportals.ipsl.jussieu.fr/gunicorn1/?SERVICE=WMS&REQUEST=GetColorBar' +
 										'&COMMAND=' + command +
 										'&VARIABLE=' + variable.replace('+','%2B'));
 			    }
@@ -236,8 +248,7 @@
 
 
 			//===============================================
-			$('#dimension').on('change', function() {
-				console.log("dimension on change!!")
+			$('#dimension').on('change', function() {				
 				dimensionToDisplay = $('.dimensionInput:checked').val();
 				variableToDisplay = $('.variableInput:checked').val();
 				scenarioToDisplay = $('.scenarioInput:checked').val();

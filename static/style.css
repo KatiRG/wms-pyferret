@@ -75,7 +75,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 200px;
+    width: 300px;
 }
 .map {
     /*width: 400px;
