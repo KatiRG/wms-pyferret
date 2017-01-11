@@ -2,6 +2,14 @@
 <html>
 	<head>
 		<title>Get/Explore Data</title>
+
+		<!-- for bokeh -->
+		<link rel="stylesheet" href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.css"
+		type="text/css"/>
+		<script type="text/javascript" src="http://cdn.pydata.org/bokeh/release/bokeh-0.12.3.min.js"></script>
+		
+		{{ figJS|safe }}
+
 	</head>
 
 	<body>
@@ -64,9 +72,17 @@
 
 		<p></p>
 		<div id="timeSeries" class='btn btn-default'>Timeseries</div>
+		<div id="test" class='btn btn-default'>Test</div>		
 		<div id="button_save" class='btn btn-default'>Save Maps</div>
 
 		<br><br>
+		
+		{% if ts_flag %}
+			<p>Bokeh plot</p>
+			<div class='bokeh'>
+			    {{ figDiv|safe }}
+			</div>
+		{% endif %}
 
 	
 		<script type='text/javascript'>
@@ -181,12 +197,6 @@
 
 			//===============================================
 			//Define buttons and pass paramteters to route
-			$("#button_ts").click(function(){
-				bds = getBds();
-				console.log("bds in button: ", bds)				
-				window.open('/timeseries?&REQUEST=getTimeseries&BDS=' + bds, "_self");
-					return false;
-			});
 
 			// http://codepen.io/anon/pen/RWraBJ
 			$("#button_save").click(function(){				
@@ -312,19 +322,83 @@
 			$('#dimension').change();
 
 			//===============================================
+			$("#test").click(function(){
+				n=1;
+				
+				// Get map boundaries
+				xlim1 = map[1].getBounds().getEast().toFixed(2);
+			    xlim2 = map[1].getBounds().getWest().toFixed(2);
+			    ylim1 = Math.max(-90, map[1].getBounds().getSouth().toFixed(2));
+			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
+			    console.log(xlim1,xlim2);
+			    console.log(ylim1,ylim2);
+			    xtrans = xlim1.toString() + ":" + xlim2.toString();
+        		ytrans = ylim1.toString() + ":" + ylim2.toString();
+			    console.log("XTRANS: ", xtrans);
+			    console.log("YTRANS: ", ytrans);
+
+			    // Determine which variables to plot
+			    dimensionToDisplay = $('.dimensionInput:checked').val();
+				variableToDisplay = $('.variableInput:checked').val();
+				scenarioToDisplay = $('.scenarioInput:checked').val();
+
+				if (dimensionToDisplay == 'variable') {
+					stressor = $('.variableInput:checked').val();
+				}
+
+				window.open('/maps?REQUEST=calcTimeseries&XTRANS=' + xtrans + '&YTRANS=' + ytrans + '&VAR=' + stressor, "_self");
+					return false;	
+			});
+
+
+			//Ajax
 			n=1;
 			$('#timeSeries').on('click', function() {
 			    console.log("here");
 
-				$('body').append("<div id='ts"+n+"'></div>") 
+			    xlim1 = map[1].getBounds().getEast().toFixed(2);
+			    xlim2 = map[1].getBounds().getWest().toFixed(2);
+			    ylim1 = Math.max(-90, map[1].getBounds().getSouth().toFixed(2));
+			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
+			    console.log(xlim1,xlim2);
+			    console.log(ylim1,ylim2);
 
-			                   $('#ts'+n).dialog({
-				title: "Time Series #"+n,
-			                        width: 830,
-			                        height: 660,
-			                   });
-			                n++;
+			
+			    $('body').append("<div id='ts"+n+"'>" + "</div>");
+
+	            $('#ts'+n).dialog({
+	                    title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
+	                        width: 640
+	            });
+
+			   	// $.ajax({
+			    //    	url: "timeSeries_03.py",
+			    //    	data: {	"VAR": "THETAO",
+							// "XLIM": xlim1 + ":" + xlim2, 
+			    //          	"YLIM": ylim1 + ":" + ylim2},
+			    //    	type: "GET",
+			    //    	cache: false,
+			    //    	dataType: 'html',
+			    //    	success: function(data) {
+			    //         console.log("success");
+			    //         console.log(data);
+
+			    // 		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
+
+			    //         $('#ts'+n).dialog({
+			    //                 title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
+			    //                     width: 640
+			    //         });
+
+			    // 		n++;
+			    //    	},
+			    //    	error: function() {
+			    //            console.log("error");
+			    //    	},
+			   	// });
+
 			});
+
 
 
 		</script>
