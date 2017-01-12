@@ -10,7 +10,7 @@ body {
     line-height: 2;
 }*/
 
-h2, p {
+h2, p, ul, li {
   /*font-family: Georgia;*/
   color: #555;
 }
