@@ -70,8 +70,7 @@ def index_maps():
 
     print("request.method in /maps !!!!!!!!!!!: ", request.method)
     print("request.args: ", request.args)
-    ts_flag = ''
-
+    
 
     if request.args.get('REQUEST') == 'calcTimeseries':
         print("request.args in ts: ", request.args)
@@ -143,33 +142,21 @@ def index_maps():
 
         # create the HTML elements to pass to template
         figJS,figDiv = components(p,CDN)
-        print("figJS: ", figJS)
-        print("figDiv: ", figDiv)
-     
+   
 
-        # Render to same page in a dialog box (still WIP!!!)
-        return (render_template('index_page04.html',
+        # Render to new page
+        return (render_template('tmp_ts.html',
             nbMaps=nbMaps, cmdArray=session['cart'],
             listSynchroMapsToSet=listSynchroMapsToSet,
             ts_flag=ts_flag,
             y=dfer['yval'],
             figJS=figJS,figDiv=figDiv,
             tmpname=tmpname
-            ))
-
-        # # Render to new page
-        # return (render_template('tmp_ts.html',
-        #     nbMaps=nbMaps, cmdArray=session['cart'],            
-        #     listSynchroMapsToSet=listSynchroMapsToSet,
-        #     ts_flag=ts_flag,
-        #     y=dfer['yval'],
-        #     figJS=figJS,figDiv=figDiv,
-        #     tmpname=tmpname
-        # ))
+        ))
             
     
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], 
-                            listSynchroMapsToSet=listSynchroMapsToSet, ts_flag=ts_flag)
+                            listSynchroMapsToSet=listSynchroMapsToSet)
 
 @app.route('/ts_dialog', methods = ['GET'])
 def api_tsdialog():
@@ -180,14 +167,15 @@ def api_tsdialog():
     if request.args.get('REQUEST') == 'calcTimeseries':
         print("request.args in dialog: ", request.args)
               
-        XTRANS = '51.33:-131.48' #str(request.args.get('XTRANS')) # [xlim1:xlim2]
-        YTRANS = '-45.7:45.7' #str(request.args.get('YTRANS')) # [ylim1:ylim2]
+        XTRANS = str(request.args.get('XTRANS')) # [xlim1:xlim2]
+        YTRANS = str(request.args.get('YTRANS')) # [ylim1:ylim2]
 
         XTRANS = XTRANS + "@ave"
         YTRANS = YTRANS + "@ave"
         print("XTRANS: ", XTRANS) #XTRANS = '51.33:-131.48'
         print("YTRANS: ", YTRANS) #YTRANS = '-45.7:45.7'
-        # VAR = request.args.get('VAR')
+        VAR = request.args.get('VAR')
+        print("VAR: ", VAR)
 
         # for testing only
         VAR = 'THETAO'   #'temp'
@@ -227,8 +215,8 @@ def api_tsdialog():
         dfer['xval'] = df.ix[:, 0]
         dfer['yval'] = df.ix[:, 1]
 
-        # Bokeh plot
-        title='Average timeseries for ' + dset + ' (x: ' + XTRANS + ', y: ' + YTRANS + ')'
+        # Bokeh plot        
+        title='Model-mean timeseries for ' + VAR + ' over [X: ' + XTRANS.split('@ave')[0] + ', Y: ' + YTRANS.split('@ave')[0] + '] relative to 1990-1999'
         p = figure(title=title,
                     plot_width=700,plot_height=400)
         p.line(dfer['xval'], dfer['yval'])
@@ -243,15 +231,10 @@ def api_tsdialog():
         p.xaxis.major_label_orientation = pi/4
         p.yaxis.axis_label = "avg " + VAR
 
-        # create the HTML elements to pass to template
-        figJS,figDiv = components(p,CDN)
-
-        # print("********************")
-        # print("sum: ", figJS + figDiv)   
+        # create the HTML elements to pass to dialog
+        figJS,figDiv = components(p,CDN) 
 
         return figJS + figDiv
-
-    
 
 
 #==============================================================

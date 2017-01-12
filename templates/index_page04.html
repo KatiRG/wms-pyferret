@@ -71,7 +71,7 @@
 
 
 		<p></p>
-		<div id="timeSeries" class='btn btn-default'>Timeseries</div>
+		<div id="timeSeries" class='btn btn-default'>Timeseries</div> Model-mean timeseries for selected stressor relative to  1990&ndash;1999 for all 4 RCP scenarios
 		<!-- <div id="test" class='btn btn-default'>Test</div> -->
 		<!-- <div id="button_save" class='btn btn-default'>Save Maps</div> -->
 
@@ -285,12 +285,14 @@
 					variable =  'VVVVV_SSSSS[m=1:5@ave]';
 					mask =  'MASK_VVVVV_SSSSS[m=1:5]';
 					if (dimensionToDisplay == 'variable') {
+						$('#timeSeries').attr('disabled', false);
 						command = command.replace('QQQQQ', qualifiersList[variableToDisplay]);
 						variable = variable.replace('VVVVV', variableToDisplay);
 						variable = variable.replace('SSSSS', scenarioList[mapId-1]);
 						mask = mask.replace('VVVVV', variableToDisplay);
 						mask = mask.replace('SSSSS', scenarioList[mapId-1]);
-					} else { 
+					} else {
+						$('#timeSeries').attr('disabled', true);
 						command = command.replace('QQQQQ', qualifiersList[variableList[mapId-1]]);
 						variable = variable.replace('VVVVV', variableList[mapId-1]);
 						variable = variable.replace('SSSSS', scenarioToDisplay);
@@ -342,28 +344,42 @@
 					return false;	
 			});
 
-			//===
+			//===============================================
 			// Display timeseries in dialogs
-			$("#timeSeries").click(function(){				
-				n=1;
-				data = {	"VAR": "THETAO"};
+			n=1;
+			$("#timeSeries").click(function(){
+				// Get map boundaries
+				xlim1 = map[1].getBounds().getEast().toFixed(2);
+			    xlim2 = map[1].getBounds().getWest().toFixed(2);
+			    ylim1 = Math.max(-90, map[1].getBounds().getSouth().toFixed(2));
+			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
+		
+			    xtrans = xlim1.toString() + ":" + xlim2.toString();
+        		ytrans = ylim1.toString() + ":" + ylim2.toString();
 
+
+			    // Determine which variables to plot
+			    dimensionToDisplay = $('.dimensionInput:checked').val();
+				variableToDisplay = $('.variableInput:checked').val();
+				scenarioToDisplay = $('.scenarioInput:checked').val();
+
+				if (dimensionToDisplay == 'variable') {
+					stressor = $('.variableInput:checked').val();
+				}
 				
 	            $.ajax({
-			       	url: '/ts_dialog?REQUEST=calcTimeseries',
+			       	url: '/ts_dialog?REQUEST=calcTimeseries&XTRANS=' + xtrans + '&YTRANS=' + ytrans + '&VAR=' + stressor,
 			       	data: {	"VAR": "THETAO"
 					},
 			       	type: "GET",
 			       	cache: false,
 			       	dataType: 'html',
 			       	success: function(data) {
-			            console.log("success");
-			            console.log(data);
 
 			    		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
 
 			            $('#ts'+n).dialog({
-			                    title: "Time Series #" + n + "...@ave)",
+			                    title: "Time Series #" + n + " Avg " + stressor +   " over zone [X=" + xlim1 + ":" + xlim2 + ", Y=" + ylim1 + ":" + ylim2 + "]",
 			                    width: 800
 			            });
 
