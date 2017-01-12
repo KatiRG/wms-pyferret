@@ -8,6 +8,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 
 import os, sys
+from os.path import basename
 import re
 import shutil
 import tempfile
@@ -215,6 +216,12 @@ def api_tsdialog():
         dfer['xval'] = df.ix[:, 0]
         dfer['yval'] = df.ix[:, 1]
 
+        # Save to csv in tmpdir
+        fname = tempfile.NamedTemporaryFile(suffix='.csv').name
+        dfer.to_csv(fname, sep='\t')
+        os.rename(fname, tmpdir + "/" + basename(fname))
+        print("saved to ", tmpdir + "/" + basename(fname))
+
         # Bokeh plot        
         title='Model-mean timeseries for ' + VAR + ' over [X: ' + XTRANS.split('@ave')[0] + ', Y: ' + YTRANS.split('@ave')[0] + '] relative to 1990-1999'
         p = figure(title=title,
@@ -233,6 +240,8 @@ def api_tsdialog():
 
         # create the HTML elements to pass to dialog
         figJS,figDiv = components(p,CDN)
+
+        buttonString = '<a href="/download?&REQUEST=SaveTimeseries&FILENAME={{tmpname}}"><button class="btn btn-default">Download</button></a>'
 
 
         return figJS + figDiv + "<button class='btn btn-default' id=\"Download\">Download</button>"
