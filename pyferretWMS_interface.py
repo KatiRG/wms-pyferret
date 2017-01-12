@@ -225,7 +225,8 @@ def api_tsdialog():
         # Bokeh plot        
         title='Model-mean timeseries for ' + VAR + ' over [X: ' + XTRANS.split('@ave')[0] + ', Y: ' + YTRANS.split('@ave')[0] + '] relative to 1990-1999'
         p = figure(title=title,
-                    plot_width=700,plot_height=400)
+                    plot_width=700,
+                    plot_height=400)
         p.line(dfer['xval'], dfer['yval'])
 
         # format axes        
@@ -241,12 +242,31 @@ def api_tsdialog():
         # create the HTML elements to pass to dialog
         figJS,figDiv = components(p,CDN)
 
-        buttonString = '<a href="/download?&REQUEST=SaveTimeseries&FILENAME={{tmpname}}"><button class="btn btn-default">Download</button></a>'
+        # buttonString = "<button class='btn btn-default' id=\"Download\">Download</button>"
+        buttonString = '<a href="/download?&REQUEST=SaveTimeseries&FILENAME=' + basename(fname) + '"><button class="btn btn-default">Download</button></a>'
+        print("buttonString: ", buttonString)
 
+        return figJS + figDiv + buttonString
 
-        return figJS + figDiv + "<button class='btn btn-default' id=\"Download\">Download</button>"
+# Download timeseries to file
+@app.route('/download')
+def download_ts():
+    print("request.args in download_ts: ", request.args)
 
+    if request.args.get('REQUEST') == 'SaveTimeseries':
+        
+        fname = request.args.get('FILENAME')
 
+        ftmp = open(tmpdir + '/' + fname, 'rb')
+        ts_csv = ftmp.read()
+        ftmp.close()
+                
+        return Response(
+            ts_csv,
+            mimetype="text/csv",
+            headers={"Content-disposition":
+                     "attachment; filename=timeseries.csv"}
+            )
 
 #==============================================================
 def number_of_workers():
