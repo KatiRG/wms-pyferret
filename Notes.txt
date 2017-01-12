@@ -1,3 +1,8 @@
+flask version:  0.11.1
+>>> import flask
+>>> flask.__version__
+
+
 Flask Tutorials
 ----------------
 https://www.tutorialspoint.com/flask/flask_environment.htm
@@ -367,3 +372,30 @@ pal=blue_orange.spk
 pal=brown_green.spk
 pal=darkorange_blue.spk
 pal=magenta_green.spk
+
+Decorators
+----------
+http://flask.pocoo.org/docs/0.12/api/#flask.after_this_request
+
+New in version 0.6.
+
+flask.after_this_request(f)
+
+    Executes a function after this request. This is useful to modify response objects. The function is passed the response object and has to return the same or a new one.
+
+    Example:
+
+    @app.route('/')
+    def index():
+        @after_this_request
+        def add_header(response):
+            response.headers['X-Foo'] = 'Parachute'
+            return response
+        return 'Hello World!'
+
+
+- http://stackoverflow.com/questions/24612366/flask-deleting-uploads-after-they-have-been-downloaded
+- http://stackoverflow.com/questions/26736419/how-to-write-flask-decorator-with-request
+
+
+

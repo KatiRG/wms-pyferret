@@ -21,7 +21,7 @@ import itertools
 from PIL import Image
 
 from flask import Flask, render_template, make_response, request, Response, session, redirect, url_for
-
+from flask import g
 
 # For bokeh plots
 import pandas as pd
@@ -249,6 +249,32 @@ def api_tsdialog():
         return figJS + figDiv + buttonString
 
 # Download timeseries to file
+# Decorator fn
+# def after_this_request(f):
+#   def decorated_function(*args, **kws):
+#     # Do something with your request here
+#     try:
+#         os.remove(tmpdir + "/" + fname)
+#     except Exception as error:
+#         app.logger.error("Error removing csv file stored on server", error)
+#   return decorated_function
+
+
+def after_this_request(f):
+    if not hasattr(g, 'after_request_callbacks'):
+        g.after_request_callbacks = []
+    g.after_request_callbacks.append(f)
+    return f
+
+@app.route('/junk')
+def index():
+    @after_this_request
+    def add_header(response):
+        print("in here")
+        response.headers['X-Foo'] = 'Parachute'
+        return response
+    return 'Hello World!'
+
 @app.route('/download')
 def download_ts():
     print("request.args in download_ts: ", request.args)
@@ -260,6 +286,17 @@ def download_ts():
         ftmp = open(tmpdir + '/' + fname, 'rb')
         ts_csv = ftmp.read()
         ftmp.close()
+
+        # os.remove(tmpdir + "/" + fname)
+
+        @after_this_request
+        def remove_file(response):
+            try:
+                os.remove(tmpdir + "/" + fname)
+            except Exception as error:
+                app.logger.error("Error removing or closing downloaded file handle", error)
+            return response
+
                 
         return Response(
             ts_csv,
