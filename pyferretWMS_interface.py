@@ -171,8 +171,8 @@ def index_maps():
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], 
                             listSynchroMapsToSet=listSynchroMapsToSet, ts_flag=ts_flag)
 
-@app.route('/dialog', methods = ['GET'])
-def api_dialog():
+@app.route('/ts_dialog', methods = ['GET'])
+def api_tsdialog():
 
     print("request.method in /dialog !!!!!!!!!!!: ", request.method)
     print("request.args: ", request.args)
@@ -246,8 +246,8 @@ def api_dialog():
         # create the HTML elements to pass to template
         figJS,figDiv = components(p,CDN)
 
-        print("********************")
-        print("sum: ", figJS + figDiv)   
+        # print("********************")
+        # print("sum: ", figJS + figDiv)   
 
         return figJS + figDiv
 

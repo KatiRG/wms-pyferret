@@ -72,21 +72,11 @@
 
 		<p></p>
 		<div id="timeSeries" class='btn btn-default'>Timeseries</div>
-		<div id="test" class='btn btn-default'>Test</div>
-		<div id="ts_dialog" class='btn btn-default'>Dialog</div>
+		<!-- <div id="test" class='btn btn-default'>Test</div> -->
 		<!-- <div id="button_save" class='btn btn-default'>Save Maps</div> -->
 
 		<br><br>
 		
-	<!-- 	{% if ts_flag %}
-
-			<p>Bokeh plot</p>
-			<div class='bokeh'>
-			    {{ figDiv|safe }}
-			</div>
-		{% endif %} -->
-
-	
 		<script type='text/javascript'>
 
 			//===============================================
@@ -353,15 +343,14 @@
 			});
 
 			//===
-			//test dialog
-			$("#ts_dialog").click(function(){
-				// console.log("ts_flag: ", {{ts_flag}})
+			// Display timeseries in dialogs
+			$("#timeSeries").click(function(){				
 				n=1;
 				data = {	"VAR": "THETAO"};
 
 				
 	            $.ajax({
-			       	url: '/dialog?REQUEST=calcTimeseries',
+			       	url: '/ts_dialog?REQUEST=calcTimeseries',
 			       	data: {	"VAR": "THETAO"
 					},
 			       	type: "GET",
@@ -386,50 +375,6 @@
 			   	});
 
 	        });
-		
-
-
-			//Ajax
-			n=1;
-			$('#timeSeries').on('click', function() {
-			    console.log("here");
-
-			    xlim1 = map[1].getBounds().getEast().toFixed(2);
-			    xlim2 = map[1].getBounds().getWest().toFixed(2);
-			    ylim1 = Math.max(-90, map[1].getBounds().getSouth().toFixed(2));
-			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
-			    console.log(xlim1,xlim2);
-			    console.log(ylim1,ylim2);
-					
-
-			   	$.ajax({
-			       	url: "timeSeries_03.py",
-			       	data: {	"VAR": "THETAO",
-							"XLIM": xlim1 + ":" + xlim2, 
-			             	"YLIM": ylim1 + ":" + ylim2},
-			       	type: "GET",
-			       	cache: false,
-			       	dataType: 'html',
-			       	success: function(data) {
-			            console.log("success");
-			            console.log(data);
-
-			    		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
-
-			            $('#ts'+n).dialog({
-			                    title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
-			                        width: 640
-			            });
-
-			    		n++;
-			       	},
-			       	error: function() {
-			               console.log("error");
-			       	},
-			   	});
-
-			});
-
 
 
 		</script>
