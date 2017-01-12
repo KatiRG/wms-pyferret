@@ -72,17 +72,19 @@
 
 		<p></p>
 		<div id="timeSeries" class='btn btn-default'>Timeseries</div>
-		<div id="test" class='btn btn-default'>Test</div>		
-		<div id="button_save" class='btn btn-default'>Save Maps</div>
+		<div id="test" class='btn btn-default'>Test</div>
+		<div id="ts_dialog" class='btn btn-default'>Dialog</div>
+		<!-- <div id="button_save" class='btn btn-default'>Save Maps</div> -->
 
 		<br><br>
 		
-		{% if ts_flag %}
+	<!-- 	{% if ts_flag %}
+
 			<p>Bokeh plot</p>
 			<div class='bokeh'>
 			    {{ figDiv|safe }}
 			</div>
-		{% endif %}
+		{% endif %} -->
 
 	
 		<script type='text/javascript'>
@@ -167,7 +169,7 @@
 			// Set up synchro between maps
 			{% for synchro in listSynchroMapsToSet %}
 				map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
-			{% endfor %}
+			{% endfor %}		
 
 			//===============================================
 			//Get leaflet map bounds (default view upon page load):
@@ -321,6 +323,7 @@
 
 			$('#dimension').change();
 
+
 			//===============================================
 			$("#test").click(function(){
 				n=1;
@@ -330,12 +333,10 @@
 			    xlim2 = map[1].getBounds().getWest().toFixed(2);
 			    ylim1 = Math.max(-90, map[1].getBounds().getSouth().toFixed(2));
 			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
-			    console.log(xlim1,xlim2);
-			    console.log(ylim1,ylim2);
+		
 			    xtrans = xlim1.toString() + ":" + xlim2.toString();
         		ytrans = ylim1.toString() + ":" + ylim2.toString();
-			    console.log("XTRANS: ", xtrans);
-			    console.log("YTRANS: ", ytrans);
+
 
 			    // Determine which variables to plot
 			    dimensionToDisplay = $('.dimensionInput:checked').val();
@@ -346,9 +347,46 @@
 					stressor = $('.variableInput:checked').val();
 				}
 
+
 				window.open('/maps?REQUEST=calcTimeseries&XTRANS=' + xtrans + '&YTRANS=' + ytrans + '&VAR=' + stressor, "_self");
 					return false;	
 			});
+
+			//===
+			//test dialog
+			$("#ts_dialog").click(function(){
+				// console.log("ts_flag: ", {{ts_flag}})
+				n=1;
+				data = {	"VAR": "THETAO"};
+
+				
+	            $.ajax({
+			       	url: '/dialog?REQUEST=calcTimeseries',
+			       	data: {	"VAR": "THETAO"
+					},
+			       	type: "GET",
+			       	cache: false,
+			       	dataType: 'html',
+			       	success: function(data) {
+			            console.log("success");
+			            console.log(data);
+
+			    		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
+
+			            $('#ts'+n).dialog({
+			                    title: "Time Series #" + n + "...@ave)",
+			                    width: 800
+			            });
+
+			    		n++;
+			       	},
+			       	error: function() {
+			               console.log("error");
+			       	},
+			   	});
+
+	        });
+		
 
 
 			//Ajax
@@ -362,40 +400,33 @@
 			    ylim2 = Math.min(map[1].getBounds().getNorth().toFixed(2), 90);
 			    console.log(xlim1,xlim2);
 			    console.log(ylim1,ylim2);
+					
 
-			
-			    $('body').append("<div id='ts"+n+"'>" + "</div>");
+			   	$.ajax({
+			       	url: "timeSeries_03.py",
+			       	data: {	"VAR": "THETAO",
+							"XLIM": xlim1 + ":" + xlim2, 
+			             	"YLIM": ylim1 + ":" + ylim2},
+			       	type: "GET",
+			       	cache: false,
+			       	dataType: 'html',
+			       	success: function(data) {
+			            console.log("success");
+			            console.log(data);
 
-	            $('#ts'+n).dialog({
-	                    title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
-	                        width: 640
-	            });
+			    		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
 
-			   	// $.ajax({
-			    //    	url: "timeSeries_03.py",
-			    //    	data: {	"VAR": "THETAO",
-							// "XLIM": xlim1 + ":" + xlim2, 
-			    //          	"YLIM": ylim1 + ":" + ylim2},
-			    //    	type: "GET",
-			    //    	cache: false,
-			    //    	dataType: 'html',
-			    //    	success: function(data) {
-			    //         console.log("success");
-			    //         console.log(data);
+			            $('#ts'+n).dialog({
+			                    title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
+			                        width: 640
+			            });
 
-			    // 		$('body').append("<div id='ts"+n+"'>" + data + "</div>");
-
-			    //         $('#ts'+n).dialog({
-			    //                 title: "Time Series #" + n + "   (X=" + xlim1 + ":" + xlim2 + "@ave, Y=" + ylim1 + ":" + ylim2 + "@ave)",
-			    //                     width: 640
-			    //         });
-
-			    // 		n++;
-			    //    	},
-			    //    	error: function() {
-			    //            console.log("error");
-			    //    	},
-			   	// });
+			    		n++;
+			       	},
+			       	error: function() {
+			               console.log("error");
+			       	},
+			   	});
 
 			});
 

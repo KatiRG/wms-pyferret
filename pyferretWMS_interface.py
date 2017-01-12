@@ -143,9 +143,13 @@ def index_maps():
 
         # create the HTML elements to pass to template
         figJS,figDiv = components(p,CDN)
+        print("figJS: ", figJS)
+        print("figDiv: ", figDiv)
+     
 
+        # Render to same page in a dialog box (still WIP!!!)
         return (render_template('index_page04.html',
-            nbMaps=nbMaps, cmdArray=session['cart'],            
+            nbMaps=nbMaps, cmdArray=session['cart'],
             listSynchroMapsToSet=listSynchroMapsToSet,
             ts_flag=ts_flag,
             y=dfer['yval'],
@@ -153,38 +157,101 @@ def index_maps():
             tmpname=tmpname
             ))
 
-
-
-        # varName = df.columns[0]
-
-        # source = ColumnDataSource(data=dict(
-        #         date = df.index,
-        #         datestr = df.index.strftime("%Y-%m"),
-        #         var = df[varName]) )
-
-        # hover1 = HoverTool(tooltips=[("date, var", "(@datestr, @var)")])
-        # tools1 = ["pan,resize,wheel_zoom,crosshair",hover1,"reset,save"]
-
-        # plot1 = figure(plot_width=600, plot_height=400, x_axis_type="datetime", min_border=10, tools=tools1, 
-        #         title="X=" + XTRANS + ", Y=" + YTRANS )
-
-        # plot1.axis[0].formatter = DatetimeTickFormatter(years="%Y", months="%b-%y", days="%d-%b-%y", hours="%H:%M")
-
-        # plot1.line('date', 'var', source=source, line_alpha=1.0, line_join="round", line_color=colors[0], 
-        #            line_width=1, legend=varName)
-        # plot1.circle('date', 'var', source=source, size=3, color=colors[0])
-
-        # plot1.background_fill_color = "beige"
-        # plot1.background_fill_alpha = 1.0
-
-        # script, div = components(plot1)
-
-
+        # # Render to new page
+        # return (render_template('tmp_ts.html',
+        #     nbMaps=nbMaps, cmdArray=session['cart'],            
+        #     listSynchroMapsToSet=listSynchroMapsToSet,
+        #     ts_flag=ts_flag,
+        #     y=dfer['yval'],
+        #     figJS=figJS,figDiv=figDiv,
+        #     tmpname=tmpname
+        # ))
             
-    
     
     return render_template('index_page04.html', nbMaps=nbMaps, cmdArray=session['cart'], 
                             listSynchroMapsToSet=listSynchroMapsToSet, ts_flag=ts_flag)
+
+@app.route('/dialog', methods = ['GET'])
+def api_dialog():
+
+    print("request.method in /dialog !!!!!!!!!!!: ", request.method)
+    print("request.args: ", request.args)
+
+    if request.args.get('REQUEST') == 'calcTimeseries':
+        print("request.args in dialog: ", request.args)
+              
+        XTRANS = '51.33:-131.48' #str(request.args.get('XTRANS')) # [xlim1:xlim2]
+        YTRANS = '-45.7:45.7' #str(request.args.get('YTRANS')) # [ylim1:ylim2]
+
+        XTRANS = XTRANS + "@ave"
+        YTRANS = YTRANS + "@ave"
+        print("XTRANS: ", XTRANS) #XTRANS = '51.33:-131.48'
+        print("YTRANS: ", YTRANS) #YTRANS = '-45.7:45.7'
+        # VAR = request.args.get('VAR')
+
+        # for testing only
+        VAR = 'THETAO'   #'temp'
+       
+        #Bokeh plot code
+        #=======================================================
+        # pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
+
+        dset = 'thetao_Oyr_ALL_historical_r1i1p1_1870-2005.nc'
+
+        # # pyferret.run("use /prodigfs/project/CARBON/CRESCENDO/thetao_Oyr_ALL_historical_r1i1p1_1870-2005.nc")
+        # pyferret.run("use thetao_Oclim_ALL_piControl_r1i1p1_1990-1999.nc")
+        # pyferret.run("let var=" + VAR + "[k=1,m=1,x=" + XTRANS + ",y=" + YTRANS + "]")
+
+        # tmpfile = tempfile.NamedTemporaryFile(suffix='.csv').name
+
+        # pyferret.run("spawn echo 'date,'" + VAR + " > " + tmpfile)
+        # pyferret.run("list/quiet/nohead/norowlab/precision=7/format=\"comma\"/file=\"" + tmpfile + "\"/append TAX_DATESTRING(t[g=var],var,\"mon\"), var")
+
+        # pyferret.stop()
+
+        # #=======================================================
+        # os.environ[ 'MPLCONFIGDIR' ] = '/tmp/'
+
+        # df = pd.read_csv(tmpfile)
+        #TEMPORARY, FOR ME
+        tmpname = 'teststressors.csv'
+        df = pd.read_csv('/home/users/cnangini/teststressors.csv')
+
+        df['date'] = pd.to_datetime(df['date'], format='%b-%Y')  # convert ferret dates as datetimes
+        # COMMENT OUT FOR ME df = df.set_index('date')
+
+        # ### Plot with bokeh
+        colors = ["#8c564b","#1f77b4","#2ca02c","#d62728","#9467bd","#e377c2","#7f7f7f","#bcbd22","#17bec"]
+
+        dfer = pd.DataFrame()
+        dfer['xval'] = df.ix[:, 0]
+        dfer['yval'] = df.ix[:, 1]
+
+        # Bokeh plot
+        title='Average timeseries for ' + dset + ' (x: ' + XTRANS + ', y: ' + YTRANS + ')'
+        p = figure(title=title,
+                    plot_width=700,plot_height=400)
+        p.line(dfer['xval'], dfer['yval'])
+
+        # format axes        
+        p.xaxis.formatter=DatetimeTickFormatter(formats=dict(
+            hours=["%d %B %Y"],
+            days=["%d %B %Y"],
+            months=["%d %B %Y"],
+            years=["%d %B %Y"],
+        ))
+        p.xaxis.major_label_orientation = pi/4
+        p.yaxis.axis_label = "avg " + VAR
+
+        # create the HTML elements to pass to template
+        figJS,figDiv = components(p,CDN)
+
+        print("********************")
+        print("sum: ", figJS + figDiv)   
+
+        return figJS + figDiv
+
+    
 
 
 #==============================================================
