@@ -232,9 +232,11 @@ def api_tsdialog():
         p.yaxis.axis_label = "avg " + VAR
 
         # create the HTML elements to pass to dialog
-        figJS,figDiv = components(p,CDN) 
+        figJS,figDiv = components(p,CDN)
 
-        return figJS + figDiv
+
+        return figJS + figDiv + "<button class='btn btn-default' id=\"Download\">Download</button>"
+
 
 
 #==============================================================
