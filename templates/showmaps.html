@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-    	<title>Slippymaps</title>		
+    	<title>Slippymaps</title>
 
     	<link rel= "stylesheet" type = "text/css"
 		    href = "{{ url_for('static', filename = 'style.css') }}">
@@ -56,7 +56,7 @@
 			  	{% endif %}
 				<div id='title{{ loop.index }}' class='title'></div>
 			    <div id='map{{ loop.index }}' class='map'></div>
-			    <div id='colourbar{{ loop.index }}' class='key leaflet-bottom leaflet-control-layers leaflet-control' style="display:none"><img /></div>
+			    <div id='key{{ loop.index }}' class='key'><img /></div>
 			    <p></p>
 			    <div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
 				<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
@@ -102,53 +102,10 @@
 				    zoom: 1,
 				    attributionControl: false
 				});
-				
 
-				$('#colourbar{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
-										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
-										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
-
-				var clockTorontoElement = L.DomUtil.get("colourbar{{loop.index}}");
-				addColourBarToLeaflet(clockTorontoElement, map[{{loop.index}}], 
-					colourbar{{loop.index}}, {{ loop.index }});
 
 			{% endfor %}
-
-			function addColourBarToLeaflet(colourbarElement, thismap, thisbar, idx) {
 			
-				// from http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
-			
-				var bds = [
-					thismap.getBounds().getEast(),
-				    thismap.getBounds().getWest(),
-				    thismap.getBounds().getNorth(),
-				    thismap.getBounds().getSouth()
-				];
-
-				var zones = 
-				      {
-				        element: colourbarElement, // Using the HTML Element for now.
-				        width: parseInt(window.getComputedStyle(colourbarElement, null).getPropertyValue("width"), 10),
-				        area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
-				        //[lat_south, lon_west], [lat_north, lon_east]
-				        // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
-				      };
-				
-				console.log("zones: ", zones)				
-
-				// Initialization
-				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
-				    firstCorner = controlsContainer.firstChild;
-
-				// Turn colourbar display on and position it
-			  	jQuery(thisbar).attr("style", "display:block");
-			  	jQuery(thisbar).attr("style", "position:relative; top: 354px; left: 30px;");
-			  	
-			  	// Add to leaflet map container otherwise will not be included in img save
-			  	controlsContainer.insertBefore(zones.element, firstCorner); 
-
-			};
-
 			//===============================================
 			// Set up synchro between maps
 			{% for synchro in listSynchroMapsToSet %}
@@ -165,8 +122,7 @@
 				    map[1].getBounds().getNorth(),
 				    map[1].getBounds().getSouth()
 				];
-				console.log("default bds: ", bds);
-
+				
 				//bounds after zoom
 				map[1].on('moveend', function() {
 				    var east = map[1].getBounds().getEast(),
@@ -175,7 +131,6 @@
 				        south = map[1].getBounds().getSouth();
 
 				    bds = [east, west, north, south];
-				    console.log("bds on zoom: ", bds);
 
 				});
 			{% endif %}	
@@ -183,6 +138,11 @@
 			//===============================================
 			//Define buttons and pass paramteters to route
 			{% for aDict in cmdArray -%}
+
+				//Render map in div
+				$('#key{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
 				
 				$("#button{{loop.index}}_ts").click(function(){
 					console.log("bds in button: ", bds)
@@ -213,6 +173,6 @@
 		</script>
 
 
-  	</div> <!-- ./container --> 
+  	</div> <!-- ./container -->
   </body>
 </html>

@@ -19,12 +19,7 @@ from jinja2 import Template
 import itertools
 from PIL import Image
 
-from flask import Flask, render_template, make_response, request, Response, session, redirect, url_for
-# from app import index_add_counter
-
-
-# http://cfss.uchicago.edu/slides/week10_flaskPlotting.pdf
-import random
+from flask import Flask, render_template, make_response, request, Response, session, url_for
 
 # For bokeh plots
 import pandas as pd
@@ -52,51 +47,32 @@ def test_index():
 
 @app.route('/')
 def index():
-
-    print("request.method in / !!!!!!!!!!!: ", request.method)
-
+   
     if request.method =='GET':
         if request.args.get('REQUEST') == 'ReplaceMap' or request.args.get('REQUEST') == 'DeleteMap':
-            print("Request from edit!!!: ", request.args)
             mapnum = int(request.args.get('MAPNUM')) 
             dset = str(request.args.get('DSET'))
             postvar = str(request.args.get('POSTVAR'))
             command = str(request.args.get('COMMAND'))
             variable = str(request.args.get('VARIABLE'))
 
-            print("session[cart] before anything: ", session['cart'])
-
             # Replace same map with edited params
             if request.args.get('REQUEST') == 'ReplaceMap':
-                # session["cart"].append({'command': command, 'variable': variable, 'dset': dset, 'postvar': postvar})
                 session['cart'][mapnum-1]['dset'] = dset
                 session['cart'][mapnum-1]['variable'] = variable
                 session['cart'][mapnum-1]['command'] = command
                 session['cart'][mapnum-1]['postvar'] = postvar
-                print('replaced session[cart]: ', session['cart'])
 
             # Delete requested map from session[cart]
             elif request.args.get('REQUEST') == 'DeleteMap':
                 del session['cart'][mapnum -1]
-                print('session[cart] after del: ', session['cart'])
 
         elif not request.args: #initialize on start-up
             session.clear()
             session['cart'] = [] #to store ferret commands
             listSynchroMapsToSet = ''
-            print("Initialized session[cart]: ", session['cart'])
-            
-            # print("current wdir: ", os.getcwd())
-            # session['foodir'] = tempfile.mkdtemp()
-            # print("initial dir: ", session['foodir'])
-            # # 
-            # # tmpdir = tempfile.mkdtemp()
-            # # print('Temporary directory to remove: ', tmpdir)
-            # os.chdir(session['foodir'])
-            # print("current wdir after cd: ", os.getcwd())
 
 
-    print("session[cart] in / !!!!!!!!!!!: ", session['cart'])
     nbMaps = len(session['cart'])
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
@@ -104,10 +80,7 @@ def index():
 
 @app.route('/', methods = ['POST', 'GET'])
 def map_formhandler():
-
-    print("session[cart] in map_formhandler BEFORE: ", session['cart'])
-
-    # print("request.form submit", request.form['submit'])
+    
     if request.method =='POST':
         dset = str(request.form['DSET'])
         variable = str(request.form['VARIABLE'])
@@ -119,26 +92,11 @@ def map_formhandler():
     nbMaps = len(session['cart'])    #len(cmdArray)
     listSynchroMapsToSet = list(itertools.permutations(range(1,nbMaps+1), 2))
 
-    print("session[cart] in map_formhandler AFTER: ", session['cart'])
-
     return render_template('showmaps.html', cmdArray=session['cart'], listSynchroMapsToSet=listSynchroMapsToSet)
 
 
 @app.route('/showmaps_resource', methods=['POST','GET'])
 def api_calcmaps():
-
-    # ImmutableMultiDict([('LAYERS', u''), ('STYLES', u''), ('WIDTH', u'256'), 
-    # ('SERVICE', u'WMS'), ('FORMAT', u'image/png'), ('REQUEST', u'GetMap'), 
-    # ('HEIGHT', u'256'), ('SRS', u'EPSG:4326'), ('VERSION', u'1.1.1'), 
-    # ('COMMAND', u'shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno'), 
-    # ('BBOX', u'0,-90,90,0'), ('VARIABLE', u'temp[k=@max]'), ('TRANSPARENT', u'true')])
-
-    # os.chdir(session['foodir'])
-    # print("current wdir in api: ", os.getcwd())
-    # pyferret.start(journal=False, unmapped=True, quiet=False, verify=False)
-    # print("pyferret started for each worker")
-    # print("show data in api")
-    # pyferret.run('show data/all')
     
     DSET = str(request.args.get('DSET'))
     POSTVAR = str(request.args.get('POSTVAR'))
@@ -146,24 +104,19 @@ def api_calcmaps():
     VARIABLE = str(request.args.get('VARIABLE'))
 
     tmpname = tempfile.NamedTemporaryFile(suffix='.png').name
-    tmpname = os.path.basename(tmpname)    
+    tmpname = os.path.basename(tmpname)
 
-    # pyferret.run('go ' + envScript) # load the environment (dset to open + variables definition)
     pyferret.run('use ' + DSET)
    
-    pyferret.run('show data/all')
+    # pyferret.run('show data/all')
 
     if request.args.get('REQUEST') == 'GetColorBar':
 
                 pyferret.run('set window/aspect=1/outline=0')
-                # pyferret.run('set window/aspect=.7')
                 pyferret.run('go margins 2 4 3 3')
                 pyferret.run(COMMAND + '/set_up ' + VARIABLE)
                 pyferret.run('ppl shakey 1, 0, 0.15, , 3, 9, 1, `($vp_width)+0`, 1, 1.25 ; ppl shade')
                 pyferret.run('frame/format=PNG/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
-                # pyferret.run('frame/format=PNG/transparent/xpixels=400/file="' + tmpdir + '/key' + tmpname + '"')
-
-                # print('tmpname: ', 'key' + tmpname)
 
                 im = Image.open(tmpdir + '/key' + tmpname)
                 box = (0, 325, 400, 375)
@@ -171,8 +124,7 @@ def api_calcmaps():
                 area.save(tmpdir + '/' + tmpname, "PNG")
 
     elif request.args.get('REQUEST') == 'GetMap':
-        
-        #Define pyferret variables for 'REQUEST' == 'GetMap'
+                
         BBOX = request.args.get('BBOX')
         BBOX = BBOX.split(',')
     
@@ -184,21 +136,15 @@ def api_calcmaps():
 
         pyferret.run('set window/aspect=1/outline=5')
         pyferret.run('go margins 0 0 0 0')
-        
-        #For saving to file
-        # pyferret.run('set mode meta')
+         
 
         if POSTVAR:
-            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
+            pyferret.run(COMMAND + '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE + ',' + POSTVAR)
         else:
-            pyferret.run(COMMAND +  '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
+            pyferret.run(COMMAND + '/noaxis/nolab/nokey' + HLIM + VLIM + ' ' + VARIABLE)
         
         #For saving to file
         pyferret.run('frame/format=PNG/transparent/xpixels=' + str(WIDTH) + '/file="' + tmpdir + '/' + tmpname + '"')
-        # pyferret.run('cancel mode meta')
-        # print("*************** file: ", tmpdir + '/' + tmpname)
-        # pyferret.stop()
-        # print("...................stopping pyferret")
 
     if os.path.isfile(tmpdir + '/' + tmpname):
         ftmp = open(tmpdir + '/' + tmpname, 'rb')
@@ -212,27 +158,15 @@ def api_calcmaps():
 @app.route('/edit/<path:urlpath>', methods=['POST','GET'])
 def edit_map(urlpath):
     try:
-        # os.chdir(session['foodir'])
-        # print("current wdir in edit: ", os.getcwd())
-        # print("show data in edit")
-        # pyferret.run('show data/all')
-
-
-        print("urlpath: ", urlpath)
+        
         url_split = urlpath.split("&")
-        print("url_split: ", url_split)
         mapnum=int(urlpath.split("&")[0])
         dset=str(urlpath.split("&")[1])
         variable=str(urlpath.split("&")[2])
         command=str(urlpath.split("&")[3])
         postvar=str(urlpath.split("&")[4])
 
-        print("from URL: ", str(mapnum) + ", " + dset + ", " + variable)
-
         if request.method=='POST':
-           
-            print("POST request.form: ", request.form)
-            print("request.form submit", request.form['submit_type'])
             
             if request.form['submit_type'] == "Preview":
                 dset = str(request.form['dset'])
@@ -242,7 +176,7 @@ def edit_map(urlpath):
                 
                 return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
             
-        else: #display chosen map to be edited            
+        else: #display chosen map to be edited
             return render_template("editmap.html", mapnum=mapnum, dset=dset, variable=variable, command=command, postvar=postvar)
     
     except Exception, e:
@@ -265,9 +199,9 @@ def bokeh_ts(urlpath):
         pyferret.run('use ' + dset)
 
         tmpname = tempfile.NamedTemporaryFile(suffix='.csv').name
-        tmpname = os.path.basename(tmpname)        
+        tmpname = os.path.basename(tmpname)
     
-        # Store timeseries file in current working dir for now                
+        # Store timeseries file in current working dir for now
         pyferret.run('list/file="' + tmpdir + '/' + tmpname + '"' + ' ' + variable + '[x=' + east + ':' + west + '@ave,y=' + south + ':' + north + '@ave]')       
        
         # Read in csv file        
@@ -282,7 +216,6 @@ def bokeh_ts(urlpath):
         dateFlag=0
         for idx in range(12):
             if x[0].find(months[idx]) != -1:
-                print("found month")
                 dateFlag=1
 
         if dateFlag==1:
@@ -321,10 +254,9 @@ def bokeh_ts(urlpath):
             ))
 
     except Exception, e:
-        return(str(e))          
+        return(str(e))
 
 # Download timeseries to file
-# http://code.runnable.com/UiIdhKohv5JQAAB6/how-to-download-a-file-generated-on-the-fly-in-flask-for-python
 @app.route('/download')
 def download_ts():
     print("request.args in download_ts: ", request.args)
@@ -336,8 +268,7 @@ def download_ts():
         ftmp = open(tmpdir + '/' + fname, 'rb')
         ts_csv = ftmp.read()
         ftmp.close()
-        
-        # http://stackoverflow.com/questions/30024948/flask-download-a-csv-file-on-clicking-a-button
+                
         return Response(
             ts_csv,
             mimetype="text/csv",
@@ -373,7 +304,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         pyferret.start(journal=False, unmapped=True, quiet=True, verify=False)
 
     	master_pid = os.getpid()
-    	print('---------> gunicorn master pid: ', master_pid)    
+    	print('---------> gunicorn master pid: ', master_pid)
 
         self.options = options or {}
         self.application = app
