@@ -1,0 +1,51 @@
+#!/bin/sh
+# meta2pdf, bazita sur metafile2pdf
+# origina aŭtoro: Marco van Hulten
+# permesilo: GNU Free Documentation License v. 1.3 aŭ plu
+# 
+# history:
+#   2016-02 Improved scripting conventions; messages are now in English
+# 
+# TODO: Write Ferret script to put current datasets, vars and defs in the .txt file!
+#       Possibly merge in the "COMPARE" package...
+# 
+echo "Syntax: meta2pdf BASENAME"
+set -e
+study="`date +%Y%m`"
+#study="mang"
+output_dir="${RESULTS}/${study}"
+if [ ! -d ${output_dir} ]; then
+    echo "Creating new directory: ${output_dir}"
+    mkdir -p ${output_dir}
+fi
+echo "The file is saved in ${output_dir}/${1}.pdf"
+echo "Redundantaj dosieroj estos en meta+ps/"
+if [ ! -e ${output_dir}/${1}.txt ]; then
+    cat <<EOF >>${output_dir}/${1}.txt
+\caption{
+\label{fig:
+
+Ferret definitions, commands and sources:
+
+EOF
+fi
+vim ${output_dir}/${1}.txt
+
+echo "Creating $1.eps with thick lines and no margins."
+gksm2ps -p portrait -l cps -d cps -o $1.eps metafile.plt
+sed -e "s/^\/lw {\(.*\) div setlinewidth/\/lw {2 mul \1 div setlinewidth/" $1.eps > temp.eps
+eps2eps temp.eps ${1}.eps
+rm temp.eps
+
+echo "Creating $1_vec.pdf for printing, $1_pix.pdf for presentating and $1.jpg for web publications."
+convert -density 250 +antialias -compress zip $1.eps ${1}_pix.pdf
+pdfcrop ${1}_pix.pdf && mv ${1}_pix-crop.pdf ${output_dir}/${1}_pix.pdf
+epstopdf --outfile=${output_dir}/${1}_vec.pdf ${1}.eps
+#gs -q -r150 -dTextAlphaBits=4 -dGraphicsAlphaBits=1 -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=${output_dir}/${1}.pdf ${2}.eps
+#eps2jpg -a 3 -o ${output_dir} $1.eps
+convert -density 300 ${output_dir}/$1_vec.pdf ${output_dir}/$1.jpeg
+gzip -c $1.eps > ${output_dir}/$1.eps.gz
+
+mkdir -p meta+ps
+mv metafile*.plt* *_pix.pdf meta+ps/
+

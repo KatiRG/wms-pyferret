@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+    	<title>Slippymaps</title>		
+
+    	<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'style.css') }}">
+
+		<link rel= "stylesheet" type = "text/css"
+		    href = "{{ url_for('static', filename = 'bootstrap.min.css') }}">
+
+    	<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css' />
+	    <script src='http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+
+	    <link rel='stylesheet' href='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.css' />
+	    <script src='http://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.1/leaflet.js'></script>
+	    <script src='http://cdn.rawgit.com/turban/Leaflet.Sync/0.0.5/L.Map.Sync.js'></script>
+
+	    <script type = "text/javascript"
+		    src = "{{ url_for('static', filename = 'printing/jQuery.print.js') }}"></script>
+
+	</head>
+
+	<body>
+   	<div class="container-fluid">
+	    <h2>Add map</h2>
+
+	    <div id="dialog">
+			<input id="commandLine" type="text" placeholder="New command">
+		</div>
+
+		
+		<!-- Request form to add map -->
+		<form action = "/" method = "POST">
+			<input type="text" name="DSET" size="55"> dataset (e.g. levitus_climatology) <br>
+			<input type="text" name="VARIABLE" size="55"> ferret variable (e.g. temp[k=@max])<br>
+	        <input type="text" name="COMMAND" size="55"> ferret command (e.g. shade/x=-180:180/y=-90:90/lev=20v/pal=mpl_PSU_inferno)<br>
+	        <input type="text" name="POSTVAR" size="55"> OPTIONAL: post-variable arguments (e.g. nav_lon, nav_lat)
+	        <br><br>
+	        <input type="submit" value="Submit" class='btn btn-default'/>
+	  	</form>
+	  	<br><br><br>
+
+	  	<!-- Add map requested by user in form -->
+		{% for aDict in cmdArray -%}
+		
+			<div class='mapContainer'>
+				Map number: {{loop.index}} <br>
+				dataset: {{aDict.dset}}<br>
+			  	variable: {{aDict.variable}} <br>
+			  	command: {{aDict.command}}
+			  	{% if aDict.postvar %} 
+			  		({{aDict.postvar}})
+			  	{% endif %}
+				<div id='title{{ loop.index }}' class='title'></div>
+			    <div id='map{{ loop.index }}' class='map'></div>
+			    <div id='colourbar{{ loop.index }}' class='key leaflet-bottom leaflet-control-layers leaflet-control' style="display:none"><img /></div>
+			    <p></p>
+			    <div id="button{{loop.index}}_ts" class='btn btn-default'>Timeseries</div>
+				<div id="button{{loop.index}}_edit" class='btn btn-default'>Edit</div>
+				<div id="button{{loop.index}}_save" class='btn btn-default'>Save</div>
+				<div id="button{{loop.index}}_delete" class='btn btn-default'>Delete</div>
+			</div>
+						
+		{% endfor -%}
+
+  		
+		<script type='text/javascript'>
+
+			//===============================================
+			var crs = L.CRS.EPSG4326;
+
+			var map = [];
+			var wmspyferret = [];
+			var frontiers= [];
+
+			//===============================================
+			{% for aDict in cmdArray -%}
+
+				wmspyferret[{{ loop.index }}] = L.tileLayer.wms('http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}', {
+					command: '{{ aDict.command }}',
+					variable: '{{ aDict.variable }}',
+				    	crs: crs,
+					format: 'image/png',
+					transparent: true,
+				    	uppercase: true
+				});
+
+				frontiers[{{ loop.index }}] = L.tileLayer.wms('http://www.globalcarbonatlas.org:8080/geoserver/GCA/wms', {
+					layers: 'GCA:GCA_frontiersCountryAndRegions',
+					format: 'image/png',
+				    	crs: crs,
+					transparent: true
+				});
+
+				map[{{ loop.index }}] = L.map('map{{ loop.index }}', {
+				    layers: [wmspyferret[{{ loop.index }}], frontiers[{{ loop.index }}]],
+				    crs: crs,
+				    center: [0,-40],
+				    zoom: 1,
+				    attributionControl: false
+				});
+				
+
+				$('#colourbar{{ loop.index }}').children('img').attr('src', 'http://localhost:8000/showmaps_resource?DSET={{aDict.dset}}&POSTVAR={{aDict.postvar}}&SERVICE=WMS&REQUEST=GetColorBar' +
+										'&COMMAND=' + wmspyferret[{{ loop.index }}].wmsParams.command +
+										'&VARIABLE=' + wmspyferret[{{ loop.index }}].wmsParams.variable.replace('+','%2B'));
+
+				var clockTorontoElement = L.DomUtil.get("colourbar{{loop.index}}");
+				addColourBarToLeaflet(clockTorontoElement, map[{{loop.index}}], 
+					colourbar{{loop.index}}, {{ loop.index }});
+
+			{% endfor %}
+
+			function addColourBarToLeaflet(colourbarElement, thismap, thisbar, idx) {
+			
+				// from http://stackoverflow.com/questions/20790045/how-to-precisely-place-a-div-element-on-a-map-using-leaflet-js
+			
+				var bds = [
+					thismap.getBounds().getEast(),
+				    thismap.getBounds().getWest(),
+				    thismap.getBounds().getNorth(),
+				    thismap.getBounds().getSouth()
+				];
+
+				var zones = 
+				      {
+				        element: colourbarElement, // Using the HTML Element for now.
+				        width: parseInt(window.getComputedStyle(colourbarElement, null).getPropertyValue("width"), 10),
+				        area: L.latLngBounds([bds[3], bds[1]], [bds[2], bds[0]])
+				        //[lat_south, lon_west], [lat_north, lon_east]
+				        // area: L.latLngBounds([43.58, -79.64], [43.86, -79.10]) // Using L.latLngBounds for now.
+				      };
+				
+				console.log("zones: ", zones)				
+
+				// Initialization
+				var controlsContainer = thismap._container.getElementsByClassName("leaflet-control-container")[0],
+				    firstCorner = controlsContainer.firstChild;
+
+				// Turn colourbar display on and position it
+			  	jQuery(thisbar).attr("style", "display:block");
+			  	jQuery(thisbar).attr("style", "position:relative; top: 354px; left: 30px;");
+			  	
+			  	// Add to leaflet map container otherwise will not be included in img save
+			  	controlsContainer.insertBefore(zones.element, firstCorner); 
+
+			};
+
+			//===============================================
+			// Set up synchro between maps
+			{% for synchro in listSynchroMapsToSet %}
+				map[{{ synchro[0] }}].sync(map[{{ synchro[1] }}]);
+			{% endfor %}
+
+			//===============================================
+			//Get leaflet map bounds (default view upon page load):
+			{% if cmdArray %}
+				var bds=[]
+				bds = [
+					map[1].getBounds().getEast(),
+				    map[1].getBounds().getWest(),
+				    map[1].getBounds().getNorth(),
+				    map[1].getBounds().getSouth()
+				];
+				console.log("default bds: ", bds);
+
+				//bounds after zoom
+				map[1].on('moveend', function() {
+				    var east = map[1].getBounds().getEast(),
+				        west = map[1].getBounds().getWest(),
+				        north = map[1].getBounds().getNorth(),
+				        south = map[1].getBounds().getSouth();
+
+				    bds = [east, west, north, south];
+				    console.log("bds on zoom: ", bds);
+
+				});
+			{% endif %}	
+
+			//===============================================
+			//Define buttons and pass paramteters to route
+			{% for aDict in cmdArray -%}
+				
+				$("#button{{loop.index}}_ts").click(function(){
+					console.log("bds in button: ", bds)
+					window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds, "_self");
+					// window.open('/timeseries/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&' + bds, "_self");
+  					return false;
+				});
+
+				$("#button{{loop.index}}_edit").click(function(){
+					window.open('/edit/{{loop.index}}&{{aDict.dset}}&{{aDict.variable}}&{{aDict.command}}&{{aDict.postvar}}', "_self");
+  					return false;
+				});
+
+				$("#button{{loop.index}}_delete").click(function(){
+					window.open('/?REQUEST=DeleteMap&MAPNUM={{loop.index}}&DSET={{aDict.dset}}&VARIABLE={{aDict.variable}}&COMMAND={{aDict.command}}&POSTVAR{{aDict.postvar}}', "_self");
+  					return false;
+				});
+
+				// http://codepen.io/anon/pen/RWraBJ
+				$("#button{{loop.index}}_save").click(function(){
+					console.log("saving map ", map{{loop.index}})
+			        $('#map{{loop.index}}').print();
+			    });
+
+			{% endfor %}
+
+
+		</script>
+
+
+  	</div> <!-- ./container --> 
+  </body>
+</html>
